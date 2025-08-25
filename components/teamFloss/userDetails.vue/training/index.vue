@@ -1,0 +1,1 @@
+<template>training</template>

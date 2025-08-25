@@ -1,0 +1,3 @@
+<template>
+  <sign-up />
+</template>

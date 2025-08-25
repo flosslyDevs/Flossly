@@ -1,0 +1,102 @@
+<!-- components/LogoUpload.vue -->
+<template>
+    <div
+      class="dotted-box"
+      @dragover.prevent
+      @drop.prevent="handleDrop"
+      @click="triggerFileInput"
+    >
+      <img src="../../assets/logos/signupSetupScreen/uploadimg.svg" class="mr-2" alt="">
+      <span>
+        Drag and Drop file here or <strong>Choose file</strong>
+      </span>
+      <input
+        ref="fileInput"
+        type="file"
+        accept="image/*"
+        @change="handleFileChange"
+        class="hidden-input"
+      />
+    </div>
+  
+    <div v-if="modelValue" class="mt-2">
+      <p>Selected: {{ modelValue.name }}</p>
+      <v-img :src="previewUrl" max-width="120" class="mt-2" v-if="previewUrl" />
+    </div>
+  </template>
+  
+  <script setup>
+import { ref, watch, onBeforeUnmount } from 'vue'
+
+const modelValue = defineModel() // v-model for parent binding
+
+const fileInput = ref(null)
+const previewUrl = ref(null)
+
+// Store previous object URL to revoke it later
+let previousUrl = null
+
+const triggerFileInput = () => {
+  fileInput.value?.click()
+}
+
+const handleFileChange = (e) => {
+  const file = e.target.files[0]
+  if (file) {
+    setFile(file)
+  }
+}
+
+const handleDrop = (e) => {
+  const file = e.dataTransfer.files[0]
+  if (file) {
+    setFile(file)
+  }
+}
+
+const setFile = (file) => {
+  modelValue.value = file
+
+  // Revoke previous preview URL if any
+  if (previousUrl) {
+    URL.revokeObjectURL(previousUrl)
+  }
+
+  if (file && file.type.startsWith('image/')) {
+    const objectUrl = URL.createObjectURL(file)
+    previewUrl.value = objectUrl
+    previousUrl = objectUrl
+  } else {
+    previewUrl.value = null
+  }
+}
+
+// Clean up when component is destroyed
+onBeforeUnmount(() => {
+  if (previousUrl) URL.revokeObjectURL(previousUrl)
+})
+</script>
+
+  
+  <style scoped>
+  .dotted-box {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    text-align: center;
+  }
+  .dotted-box:hover {
+    border-color: #60E5A3;
+    color: #60E5A3;
+  }
+  .hidden-input {
+    display: none;
+  }
+  </style>
+  

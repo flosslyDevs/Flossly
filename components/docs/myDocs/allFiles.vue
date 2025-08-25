@@ -1,0 +1,212 @@
+<template>
+  <div style="border: 1px solid #dbdbdb; border-radius: 6px; overflow: hidden">
+    <!-- Header -->
+    <div
+      style="border-bottom: 1px solid #dbdbdb"
+      class="d-flex align-center justify-space-between px-4 py-2"
+    >
+      <h3
+        style="
+          font-family: Poppins;
+          font-weight: 600;
+          font-size: 14px;
+          margin: 0;
+        "
+      >
+        {{ folder && folder.name ? folder.name : " All Files" }}
+      </h3>
+      <div class="d-flex align-center gap-3">
+        <v-text-field
+          v-model="search"
+          density="compact"
+          placeholder="Search files"
+          hide-details
+          variant="solo"
+          style="max-width: 200px"
+          class="input-bordered"
+          flat
+          append-inner-icon="mdi-magnify"
+        />
+        <v-btn
+          v-if="!hideAddFileButton"
+          class="py-2 ml-2"
+          color="primary"
+          flat
+          @click="$emit('addFileHandle')"
+        >
+          <v-icon start>mdi-plus</v-icon>
+          Add File
+        </v-btn>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <v-table class="custom-table" density="comfortable">
+      <thead>
+        <tr>
+          <th style="width: 600px">Name of Document</th>
+          <th v-if="!folder">Folder</th>
+          <th>Modified Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(file, index) in filteredFiles" :key="index">
+          <td>
+            <div class="px-4" style="width: 60%">
+              <p
+                contenteditable="true"
+                @blur="updateValueRow(file, 'name', $event)"
+                class="editable-text"
+              >
+                {{ file.name }}
+              </p>
+            </div>
+          </td>
+          <td v-if="!folder">
+            <div class="px-4">{{ file.folder?.name }}</div>
+          </td>
+          <td>
+            <div class="px-4">{{ getParsedDate(file.updatedAt) }}</div>
+          </td>
+          <td>
+            <div class="px-4 d-flex align-center">
+              <!-- View -->
+              <img
+                src="@/assets/icons/view.svg"
+                alt="View"
+                width="20"
+                height="20"
+                class="mr-2"
+                style="cursor: pointer"
+                @click="$emit('view-file', file)"
+              />
+
+              <!-- Edit -->
+              <img
+                src="@/assets/icons/edit.svg"
+                alt="Edit"
+                width="20"
+                height="20"
+                class="mr-2"
+                style="cursor: pointer"
+                @click="$emit('edit-file', file)"
+              />
+
+              <!-- Download -->
+              <img
+                src="@/assets/icons/download.svg"
+                alt="Download"
+                width="20"
+                height="20"
+                style="cursor: pointer"
+                @click="$emit('download-file', file)"
+              />
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </v-table>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed } from "vue";
+import { parsedDate } from "~/lib/dateFormatter";
+
+const props = defineProps({
+  files: {
+    type: Array,
+    default: () => [],
+  },
+  hideAddFileButton: {
+    type: Boolean,
+    default: false,
+  },
+  folder: {
+    type: Object,
+    default: null,
+  },
+});
+
+const search = ref("");
+
+const filteredFiles = computed(() =>
+  props.files.filter(
+    (file) =>
+      file.name.toLowerCase().includes(search.value.toLowerCase()) ||
+      file.folder.name.toLowerCase().includes(search.value.toLowerCase())
+  )
+);
+
+const getParsedDate = (date) => {
+  return parsedDate(date);
+};
+
+const updateValueRow = (file, field, event) => {
+  console.log(file);
+  const newValue = event.target.innerText.trim();
+  console.log("Updated value:", newValue);
+  file[field] = newValue;
+};
+</script>
+
+<style scoped>
+:deep(.v-table__wrapper table) {
+  width: 100% !important;
+  border-collapse: collapse;
+  table-layout: fixed; /* Ensures columns align */
+}
+
+.custom-table th,
+.custom-table td {
+  font-family: Poppins;
+  font-weight: 400;
+  font-size: 13px;
+  padding: 8px 12px; /* same for both */
+  border: 1px solid #dbdbdb;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.custom-table th {
+  background-color: #f6f6f6;
+  font-weight: 500;
+}
+
+.custom-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* Remove borders overlapping with parent container */
+.custom-table th:first-child,
+.custom-table td:first-child {
+  border-left: none;
+}
+
+.custom-table th:last-child,
+.custom-table td:last-child {
+  border-right: none;
+}
+
+.custom-table thead tr:first-child th {
+  border-top: none;
+}
+
+.custom-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.input-bordered :deep(.v-field) {
+  border: 1px solid #dfdfdf !important;
+  border-radius: 8px !important;
+  background-color: white !important;
+  min-height: 40px;
+  font-size: 14px;
+  font-family: "Poppins", sans-serif;
+  width: 200px;
+}
+::v-deep(.small-input input) {
+  font-size: 14px !important;
+  font-family: "Poppins";
+}
+</style>

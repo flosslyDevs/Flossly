@@ -1,0 +1,462 @@
+<template>
+  <div style="background-color: white" class="pa-5 rounded-lg">
+    <div class="task-summary">
+      <!-- Cards Grid -->
+      <v-row dense>
+        <v-col cols="12" md="2" v-for="(item, i) in taskStats" :key="i">
+          <v-card :style="{backgroundColor: item.color}" class="task-card pa-4" elevation="0">
+            <div class="card-number">{{ item.taskCount }}</div>
+            <div class="card-label">{{ item.categoryName }}</div>
+          </v-card>
+        </v-col>
+      </v-row>
+    </div>
+    <v-tabs
+      v-model="currentTab"
+      class="custom-tabs mt-5"
+      slider-color="primary"
+    >
+      <v-tab
+        v-for="(cat, index) in taskStats"
+        :value="cat.categoryId"
+        :key="index"
+        class="tab-text"
+        @click="updateTasksList"
+        >{{ cat.categoryName }}</v-tab
+      >
+
+      <!-- Plus Button Tab -->
+      <v-tab
+        class="tab-text d-flex align-center justify-center"
+        style="min-width: 40px; padding: 0 8px"
+        @click="addNewCategoryDialog"
+      >
+        <v-icon size="20" color="#737373">mdi-plus</v-icon>
+      </v-tab>
+    </v-tabs>
+    <v-tabs-window v-model="currentTab">
+      <v-tabs-window-item :value="currentTab">
+        <TasksListView
+          v-if="
+            taskStatuses.length &&
+            taskPriorities.length &&
+            userList.length &&
+            categories.length
+          "
+          :headers="headers"
+          :availableHeaders="availableHeaders"
+          :taskDetails="taskDetails"
+          :orgStatuses="taskStatuses"
+          :priorities="taskPriorities"
+          :users="userList"
+          :categories="categories"
+          @onFilter="applyFilters"
+          @onUpdate="updateTasks"
+          @updateSelectedRowItems="updateSelectedRowItems"
+        />
+      </v-tabs-window-item>
+      <v-card
+        v-if="selectedRowItems.length"
+        class="action-bar py-4 d-flex justify-center align-center rounded-lg"
+        :elevation="5"
+        flat
+      >
+        <div class="selected-count d-flex align-center">
+          <span class="selected-text">
+             {{ selectedRowItems.length }}
+          </span>
+          <p class="ml-2">Items Selected</p>
+        </div>
+
+        <div
+          class="action-item d-flex flex-column align-center"
+          @click="handleDelete"
+        >
+          <v-icon color="gray" size="28">mdi-delete-outline</v-icon>
+          <span class="action-label">Delete</span>
+        </div>
+
+        <div
+          class="action-item d-flex flex-column align-center"
+          @click="handleArchive"
+        >
+          <v-icon color="gray" size="28">mdi-archive-outline</v-icon>
+          <span class="action-label">Archive</span>
+        </div>
+
+        <div
+          class="action-item d-flex flex-column align-center"
+          @click="handleComplete"
+        >
+          <v-icon color="gray" size="28">mdi-check-circle-outline</v-icon>
+          <span class="action-label">Complete</span>
+        </div>
+      </v-card>
+    </v-tabs-window>
+    <CommonAddCategorySideBar v-model="addCategoryDialog" 
+    @close="addCategoryDialog = false" :categories="categories" />
+  </div>
+</template>
+
+<script setup>
+
+const bus = useBus()
+// Stores
+
+const taskStore = useTaskStore();
+const mainStore = useMainStore();
+const orgStore = useOrgStore();
+const userStore = useUserStore();
+//Variables
+const taskDetails = ref([]);
+const headers = ref([]);
+const taskStatuses = ref([]);
+const taskPriorities = ref([]);
+const currentTab = ref(0);
+const categories = ref([]);
+const taskStats = ref([]);
+const user = ref(null);
+const userList = ref([]);
+const addCategoryDialog = ref(false)
+onMounted(() => {
+  user.value = JSON.parse(localStorage.getItem("user"));
+  if (user && user.preferences) {
+    headers.value = user.preferences.taskTableColumns;
+  } else {
+    headers.value = mainStore.getTeamTaskTableHeaders;
+  }
+  getCategories();
+  getMyStats();
+  getTaskPriorities();
+  getTaskStatuses();
+  getUsers();
+});
+
+watch(currentTab.value, (newVal) => {
+  getMyTasks(newVal);
+});
+
+const updateTasks = () => {
+  getMyStats();
+};
+bus.on('updateMyTasks', updateTasks)
+const availableHeaders = computed(() => {
+  return mainStore.getTeamTaskAllHeaders;
+});
+const getUsers = () => {
+  userStore.getUserList({ roleId: null }).then((res) => {
+    if (res.code === 0) userList.value = res.data;
+  });
+};
+
+const addNewCategoryDialog = () => {
+  addCategoryDialog.value = true
+}
+
+const applyFilters = (filters) => {
+  filters.categoryId = currentTab.value;
+  taskStore 
+    .teamTasksGroupedByStatus(filters)
+    .then((res) => {
+      if (res.code === 0) {
+        taskDetails.value =sortByCustomStatus(res.data) ;
+      } else {
+        // set snack
+      }
+    })
+    .catch((err) => {
+      return err;
+      // set snack
+    });
+};
+const getCategories = () => {
+  taskStore.listCategories().then((res) => {
+    if (res.code === 0) {
+      categories.value = res.data;
+    }
+  });
+};
+
+const getMyStats = () => {
+  taskStore.getMyTaskStatsByCategory().then((res) => {
+    if (res.code === 0) {
+      if (!currentTab.value) {
+        currentTab.value = res.data[0].categoryId;
+      }
+      taskStats.value = res.data;
+      getMyTasks(currentTab.value);
+    }
+  });
+};
+
+const getTaskStatuses = () => {
+  orgStore
+    .getTaskStatuses()
+    .then((res) => {
+      if (res.code === 0) {
+        taskStatuses.value = res.data;
+      } else {
+        // set snack
+      }
+    })
+    .catch((err) => {
+      return err;
+      // set snack
+    });
+};
+
+const getTaskPriorities = () => {
+  orgStore
+    .getTaskPriorities()
+    .then((res) => { 
+      if (res.code === 0) {
+        taskPriorities.value = res.data;
+      } else {
+        // set snack
+      }
+    })
+    .catch((err) => {
+      return err;
+      // set snack
+    });
+};
+const updateTasksList = () => {
+  selectedRowItems.value = []
+  getMyTasks(currentTab.value);
+}; 
+function sortByCustomStatus(arr) {
+  const order = ["upcoming", "todo", "progress", "cancelled", "completed"];
+  const priority = Object.fromEntries(order.map((status, index) => [status, index]));
+
+  return [...arr].sort((a, b) => {
+    const aPriority = priority[a.status?.toLowerCase()] ?? Infinity;
+    const bPriority = priority[b.status?.toLowerCase()] ?? Infinity;
+    return aPriority - bPriority;
+  });
+}
+const getMyTasks = (categoryId) => {
+  taskStore
+    .tasksGroupedByStatus({ categoryId })
+    .then((res) => {
+      if (res.code === 0) {
+        taskDetails.value = sortByCustomStatus(res.data) ;
+      } else {
+        // set snack
+      }
+    })
+    .catch((err) => {
+      return err;
+      // set snack
+    });
+};
+const selectedRowItems = ref([]);
+
+const updateSelectedRowItems = (items) => {
+  selectedRowItems.value = items;
+  console.log(selectedRowItems.value);
+};
+const handleDelete = async () => {
+  if (!selectedRowItems.value.length) {
+    mainStore.setSnackbar({
+      title: "No tasks selected to delete.",
+      type: "warning",
+    });
+    return;
+  }
+  const ids = selectedRowItems.value.map((item) => item.id);
+  try {
+    const res = await taskStore.unAssignBulkTasks({
+      userTasksIds: ids,
+    });
+
+    if (res.code === 0) {
+      updateTasksList();
+      mainStore.setSnackbar({
+        title: "Tasks unassigned successfully.",
+        type: "success",
+      });
+    } else {
+      mainStore.setSnackbar({
+        title:
+          res.data?.message ||
+          res.message ||
+          "Unable to unassign tasks. Please try again.",
+        type: "error",
+      });
+    }
+  } catch (err) {
+    mainStore.setSnackbar({
+      title:
+        err.message || "An unexpected error occurred. Please try again later.",
+      type: "error",
+    });
+  }
+};
+
+const handleArchive = async () => {
+  if (!selectedRowItems.value.length) {
+    mainStore.setSnackbar({
+      title: "No tasks selected to archive.",
+      type: "warning",
+    });
+    return;
+  }
+
+  const ids = selectedRowItems.value.map((item) => item.id);
+
+  try {
+    const res = await taskStore.archieveBulkTasks({
+      userTasksIds: ids,
+    });
+
+    if (res.code === 0) {
+      updateTasksList();
+      mainStore.setSnackbar({
+        title: "Tasks archived successfully.",
+        type: "success",
+      });
+    } else {
+      mainStore.setSnackbar({
+        title:
+          res.data?.message ||
+          res.message ||
+          "Unable to archive tasks. Please try again.",
+        type: "error",
+      });
+    }
+  } catch (err) {
+    mainStore.setSnackbar({
+      title:
+        err.message || "An unexpected error occurred. Please try again later.",
+      type: "error",
+    });
+  }
+};
+
+const handleComplete = async () => {
+  if (!selectedRowItems.value.length) {
+    mainStore.setSnackbar({
+      title: "No tasks selected to complete.",
+      type: "warning",
+    });
+    return;
+  }
+
+  const ids = selectedRowItems.value.map((item) => item.id);
+
+  try {
+    const res = await taskStore.completeBulkTasks({
+      userTasksIds: ids,
+    });
+
+    if (res.code === 0) {
+      updateTasksList();
+      mainStore.setSnackbar({
+        title: "Tasks marked as completed successfully.",
+        type: "success",
+      });
+    } else {
+      mainStore.setSnackbar({
+        title:
+          res.data?.message ||
+          res.message ||
+          "Unable to complete tasks. Please try again.",
+        type: "error",
+      });
+    }
+  } catch (err) {
+    mainStore.setSnackbar({
+      title:
+        err.message || "An unexpected error occurred. Please try again later.",
+      type: "error",
+    });
+  }
+};
+</script>
+
+<style scoped>
+.page-title {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 100%;
+  color: #1e1e1e;
+}
+
+.page-description {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 130%;
+  color: #6d6d6d;
+  width: 90%;
+}
+
+.task-card {
+  border-radius: 8px;
+}
+
+.card-number {
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  color: #fff;
+}
+
+.card-label {
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  color: #fff;
+}
+.custom-tabs {
+  border-bottom: 1px solid #dbdbdb;
+}
+.custom-tabs .v-tab {
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: none;
+  color: #1e1e1e !important;
+  min-height: 40px;
+  min-width: max-content;
+}
+
+.custom-tabs .v-tab.v-tab--selected {
+  font-weight: 500;
+  color: #1e1e1e !important;
+}
+.custom-tabs .v-tabs-slider {
+  height: 2px;
+}
+.action-bar {
+  gap: 40px;
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  padding: 0px 50px;
+  transform: translateX(-50%);
+  background-color: white;
+  z-index: 1000;
+}
+
+
+.selected-text {
+  font-family: "Poppins";
+  font-weight: 600;
+  font-size: 14px;
+  padding: 7px 15px;
+  border-radius: 50%;
+  color: #fff;
+  background: #000;
+}
+
+.action-item {
+  cursor: pointer;
+}
+
+.action-label {
+  font-family: "Poppins";
+  font-size: 13px;
+  margin-top: 4px;
+}
+</style>
