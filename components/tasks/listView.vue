@@ -537,7 +537,8 @@ const {
   orgStatuses,
   priorities,
   users,
-  categories,
+  categories, 
+  clearSelection,
 } = defineProps({
   headers: Array,
   taskDetails: Array,
@@ -546,8 +547,17 @@ const {
   priorities: Array,
   users: Array,
   categories: Array,
+  clearSelection: Boolean,
 });
-
+watch(
+  () => clearSelection,
+  (newVal) => {
+    if (newVal) {
+      isAllSelected.value=false
+    selectedTasks.value = [];
+    }
+  }
+);
 const emit = defineEmits(["onFilter", "onUpdate", "updateSelectedRowItems"]);
 const fixedColumnOrder = [
   "title",
@@ -588,6 +598,7 @@ const drawerOpen = ref(false);
 const openedPanels = ref([0]);
 const dialogOpen = ref(false);
 const taskPoolDialog = ref(false);
+const isAllSelected= ref(false);
 onMounted(() => {
   selectedHeaders.value = sortHeaders(headers);
   statuses.value = orgStatuses;
@@ -738,7 +749,7 @@ const updateSubtaskValueColumn = (column) => {
 };
 const updateValueRow = (row, key) => {
   setFocus(row.id, key, false);
-  if (key === "name" || key === 'comments' || key === 'documentLink') return;
+  if (key === "name" || key === "comments" || key === "documentLink") return;
   taskStore
     .updateUserTask(row)
     .then((res) => {
@@ -823,12 +834,23 @@ const updateSubtaskHeaderTitle = (key, value) => {
   }
 };
 
-const toggleAll = (val) => {
-  if (val) {
-    selectedTasks.value = taskDetails.slice(); // select all
+const toggleAll = () => {
+  console.log(isAllSelected.value)
+  if (isAllSelected.value) {
+    isAllSelected.value=false
+    selectedTasks.value = []
   } else {
-    selectedTasks.value = []; // deselect all
+    const selected = []
+    taskDetails.forEach((el) => {
+      el.tasks.forEach((t) => {
+        selected.push(t)
+      })
+    })
+    selectedTasks.value = selected
+    isAllSelected.value = true
   }
+  
+  emit("updateSelectedRowItems", selectedTasks.value);
 };
 const getDetails = (item) => {
   selectedItem.value = item;
@@ -838,25 +860,9 @@ const getDetails = (item) => {
 function onFiltersUpdated(newFilters) {
   emit("onFilter", newFilters);
 }
-const selectedRowItems = ref([]);
 
 const onSelectionChange = (newSelected) => {
-  // Figure out which item was just clicked
-  if (newSelected.length > selectedRowItems.value.length) {
-    // Checkbox checked → log the added one
-    const added = newSelected.find(
-      (item) => !selectedRowItems.value.includes(item)
-    );
-    console.log("Selected item:", added);
-  } else {
-    // Checkbox unchecked → log the removed one
-    const removed = selectedRowItems.value.find(
-      (item) => !newSelected.includes(item)
-    );
-    console.log("Unselected item:", removed);
-  }
-  selectedRowItems.value = newSelected;
-  emit("updateSelectedRowItems", selectedRowItems.value);
+  emit("updateSelectedRowItems", selectedTasks.value);
 };
 </script>
 

@@ -4,7 +4,11 @@
       <!-- Cards Grid -->
       <v-row dense>
         <v-col cols="12" md="2" v-for="(item, i) in taskStats" :key="i">
-          <v-card :style="{backgroundColor: item.color}" class="task-card pa-4" elevation="0">
+          <v-card
+            :style="{ backgroundColor: item.color }"
+            class="task-card pa-4"
+            elevation="0"
+          >
             <div class="card-number">{{ item.taskCount }}</div>
             <div class="card-label">{{ item.categoryName }}</div>
           </v-card>
@@ -63,16 +67,16 @@
       >
         <div class="selected-count d-flex align-center">
           <span class="selected-text">
-             {{ selectedRowItems.length }}
+            {{ selectedRowItems.length }}
           </span>
-          <p class="ml-2">Items Selected</p>
+          <p class="ml-3 mt-1">Items Selected</p>
         </div>
 
         <div
           class="action-item d-flex flex-column align-center"
           @click="handleDelete"
         >
-          <v-icon color="gray" size="28">mdi-delete-outline</v-icon>
+          <v-icon color="gray" size="24">mdi-delete-outline</v-icon>
           <span class="action-label">Delete</span>
         </div>
 
@@ -80,7 +84,7 @@
           class="action-item d-flex flex-column align-center"
           @click="handleArchive"
         >
-          <v-icon color="gray" size="28">mdi-archive-outline</v-icon>
+          <v-icon color="gray" size="24">mdi-archive-outline</v-icon>
           <span class="action-label">Archive</span>
         </div>
 
@@ -88,19 +92,30 @@
           class="action-item d-flex flex-column align-center"
           @click="handleComplete"
         >
-          <v-icon color="gray" size="28">mdi-check-circle-outline</v-icon>
+          <v-icon color="gray" size="24">mdi-check-circle-outline</v-icon>
           <span class="action-label">Complete</span>
         </div>
+
+        <v-divider vertical class="ml-4" />
+
+        <div
+          class="action-item d-flex flex-column align-center"
+          @click="selectedRowItems = []"
+        >
+          <v-icon color="gray" size="24">mdi-close</v-icon>
+        </div>
       </v-card>
-    </v-tabs-window>
-    <CommonAddCategorySideBar v-model="addCategoryDialog" 
-    @close="addCategoryDialog = false" :categories="categories" />
+    </v-tabs-window> 
+    <CommonAddCategorySideBar
+      v-model="addCategoryDialog"
+      @close="addCategoryDialog = false"
+      :categories="categories"
+    />
   </div>
 </template>
 
 <script setup>
-
-const bus = useBus()
+const bus = useBus();
 // Stores
 
 const taskStore = useTaskStore();
@@ -117,7 +132,7 @@ const categories = ref([]);
 const taskStats = ref([]);
 const user = ref(null);
 const userList = ref([]);
-const addCategoryDialog = ref(false)
+const addCategoryDialog = ref(false);
 onMounted(() => {
   user.value = JSON.parse(localStorage.getItem("user"));
   if (user && user.preferences) {
@@ -139,7 +154,7 @@ watch(currentTab.value, (newVal) => {
 const updateTasks = () => {
   getMyStats();
 };
-bus.on('updateMyTasks', updateTasks)
+bus.on("updateMyTasks", updateTasks);
 const availableHeaders = computed(() => {
   return mainStore.getTeamTaskAllHeaders;
 });
@@ -150,16 +165,16 @@ const getUsers = () => {
 };
 
 const addNewCategoryDialog = () => {
-  addCategoryDialog.value = true
-}
+  addCategoryDialog.value = true;
+};
 
 const applyFilters = (filters) => {
   filters.categoryId = currentTab.value;
-  taskStore 
+  taskStore
     .teamTasksGroupedByStatus(filters)
     .then((res) => {
       if (res.code === 0) {
-        taskDetails.value =sortByCustomStatus(res.data) ;
+        taskDetails.value = sortByCustomStatus(res.data);
       } else {
         // set snack
       }
@@ -208,7 +223,7 @@ const getTaskStatuses = () => {
 const getTaskPriorities = () => {
   orgStore
     .getTaskPriorities()
-    .then((res) => { 
+    .then((res) => {
       if (res.code === 0) {
         taskPriorities.value = res.data;
       } else {
@@ -221,12 +236,14 @@ const getTaskPriorities = () => {
     });
 };
 const updateTasksList = () => {
-  selectedRowItems.value = []
+  selectedRowItems.value = [];
   getMyTasks(currentTab.value);
-}; 
+};
 function sortByCustomStatus(arr) {
   const order = ["upcoming", "todo", "progress", "cancelled", "completed"];
-  const priority = Object.fromEntries(order.map((status, index) => [status, index]));
+  const priority = Object.fromEntries(
+    order.map((status, index) => [status, index])
+  );
 
   return [...arr].sort((a, b) => {
     const aPriority = priority[a.status?.toLowerCase()] ?? Infinity;
@@ -239,7 +256,7 @@ const getMyTasks = (categoryId) => {
     .tasksGroupedByStatus({ categoryId })
     .then((res) => {
       if (res.code === 0) {
-        taskDetails.value = sortByCustomStatus(res.data) ;
+        taskDetails.value = sortByCustomStatus(res.data);
       } else {
         // set snack
       }
@@ -439,12 +456,11 @@ const handleComplete = async () => {
   z-index: 1000;
 }
 
-
 .selected-text {
   font-family: "Poppins";
   font-weight: 600;
   font-size: 14px;
-  padding: 7px 15px;
+  padding: 5px 13px;
   border-radius: 50%;
   color: #fff;
   background: #000;

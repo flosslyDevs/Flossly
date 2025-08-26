@@ -32,8 +32,8 @@ import ProfileDetails from "./profile/index.vue";
 import HRDetails from "./hrDetails/index.vue";
 import PaymentDetails from "./paymentDetails/index.vue";
 import Password from "./password/index.vue";
-import Notification from "./notification/index.vue";
-import SuperUser from "./superuser/index.vue";
+// import Notification from "./notification/index.vue";
+// import SuperUser from "./superuser/index.vue";
 import Membership from "./membership/index.vue";
 import RewardPoints from "./rewardPoints/index.vue";
 import LoyaltyPoints from "./loyaltyPoints/index.vue";
@@ -44,8 +44,8 @@ import ProfileImg from "@/assets/icons/myProfile/profile.svg";
 import HrImg from "@/assets/icons/myProfile/hr.svg";
 import PaymentImg from "@/assets/icons/myProfile/payment.svg";
 import PasswordImg from "@/assets/icons/myProfile/password.svg";
-import NotificationImg from "@/assets/icons/myProfile/notification.svg";
-import SuperImg from "@/assets/icons/myProfile/super.svg";
+// import NotificationImg from "@/assets/icons/myProfile/notification.svg";
+// import SuperImg from "@/assets/icons/myProfile/super.svg";
 import MembershipImg from "@/assets/icons/myProfile/membership.svg";
 import RewardImg from "@/assets/icons/myProfile/rewards.svg";
 import LoyaltyImg from "@/assets/icons/myProfile/loyalty.svg";
@@ -59,27 +59,38 @@ const acccoutDetails = ref({})
 const contractDetails = ref({})
 
 // Sidebar menu items
-const menuItems = [
+const menuItems = ref([
   { key: "profile", label: "Profile Details", icon: ProfileImg },
   { key: "hr", label: "HR Details", icon: HrImg },
   { key: "payment", label: "Payment Details", icon: PaymentImg },
   { key: "password", label: "Password", icon: PasswordImg },
-  {
-    key: "notification",
-    label: "Notification",
-    icon: NotificationImg,
-  },
-  { key: "super", label: "Super User", icon: SuperImg },
-  { key: "membership", label: "Membership", icon: MembershipImg },
+  // {
+  //   key: "notification",
+  //   label: "Notification",
+  //   icon: NotificationImg,
+  // },
+  // { key: "super", label: "Super User", icon: SuperImg },
   { key: "reward", label: "Reward Points", icon: RewardImg },
   { key: "loyalty", label: "Loaylty Points", icon: LoyaltyImg },
 
 
-];
+]);
+const addMembership=()=>{
+  if (user?.roleId === 1 || user?.roleId === 8) {
+  menuItems.value.splice(4, 0, { 
+    key: "membership", 
+    label: "Membership", 
+    icon: MembershipImg 
+  })
+}
+}
 
 onMounted(() => {
   getAccount()
   getContract()
+addMembership()
+
+
 })
 
 const getAccount = () => {
@@ -104,8 +115,8 @@ const componentsMap = {
   hr: HRDetails,
   payment: PaymentDetails,
   password: Password,
-  notification: Notification,
-  super: SuperUser,
+  // notification: Notification,
+  // super: SuperUser,
   membership: Membership,
   reward: RewardPoints,
   loyalty: LoyaltyPoints

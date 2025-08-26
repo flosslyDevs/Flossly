@@ -49,47 +49,59 @@
           :priorities="taskPriorities"
           :categories="categories"
           :users="userList"
+          :clearSelection="isTrayHidden"
           @onFilter="applyFilters"
           @onUpdate="updateTasks"
           @updateSelectedRowItems="updateSelectedRowItems"
         />
         <v-card
-        v-if="selectedRowItems.length"
-        class="action-bar py-4 d-flex justify-center align-center rounded-lg"
-        :elevation="5"
-        flat
-      >
-        <div class="selected-count d-flex align-center">
-          <span class="selected-text">
-             {{ selectedRowItems.length }}
-          </span>
-          <p class="ml-2">Items Selected</p>
-        </div>
-
-        <div
-          class="action-item d-flex flex-column align-center"
-          @click="handleDelete"
+          v-if="selectedRowItems.length"
+          class="action-bar py-4 d-flex justify-center align-center rounded-lg"
+          :elevation="5"
+          flat
         >
-          <v-icon color="gray" size="28">mdi-delete-outline</v-icon>
-          <span class="action-label">Delete</span>
-        </div>
+          <div class="selected-count d-flex align-center">
+            <span class="selected-text">
+              {{ selectedRowItems.length }}
+            </span>
+            <p class="ml-3 mt-1">Items Selected</p>
+          </div>
 
-        <div
-          class="action-item d-flex flex-column align-center"
-          @click="handleArchive"
-        >
-          <v-icon color="gray" size="28">mdi-archive-outline</v-icon>
-          <span class="action-label">Archive</span>
-        </div>
+          <div
+            class="action-item d-flex flex-column align-center"
+            @click="handleDelete"
+          >
+            <v-icon color="gray" size="24">mdi-delete-outline</v-icon>
+            <span class="action-label">Delete</span>
+          </div>
 
-        <div
-          class="action-item d-flex flex-column align-center"
-          @click="handleComplete"
-        >
-          <v-icon color="gray" size="28">mdi-check-circle-outline</v-icon>
-          <span class="action-label">Complete</span>
-        </div>
-      </v-card>
+          <div
+            class="action-item d-flex flex-column align-center"
+            @click="handleArchive"
+          >
+            <v-icon color="gray" size="24">mdi-archive-outline</v-icon>
+            <span class="action-label">Archive</span>
+          </div>
+
+          <div
+            class="action-item d-flex flex-column align-center"
+            @click="handleComplete"
+          >
+            <v-icon color="gray" size="24">mdi-check-circle-outline</v-icon>
+            <span class="action-label">Complete</span>
+          </div>
+
+          <!-- Divider before close -->
+          <v-divider vertical class="ml-4" />
+
+          <!-- Close Icon -->
+          <div
+            class="action-item d-flex flex-column align-center"
+            @click="hideTray()"
+          >
+            <v-icon color="gray" size="24">mdi-close</v-icon>
+          </div>
+        </v-card>
       </v-tabs-window-item>
     </v-tabs-window>
     <CommonAddCategorySideBar
@@ -118,6 +130,7 @@ const categories = ref([]);
 const taskStats = ref([]);
 const user = ref(null);
 const userList = ref([]);
+const isTrayHidden = ref(false);
 onMounted(() => {
   user.value = JSON.parse(localStorage.getItem("user"));
   if (user && user.preferences) {
@@ -145,6 +158,10 @@ const getCategories = () => {
       categories.value = res.data;
     }
   });
+};
+const hideTray = () => {
+  selectedRowItems.value = [];
+  isTrayHidden.value = true;
 };
 const addNewCategoryDialog = () => {
   addCategoryDialog.value = true;
@@ -246,8 +263,8 @@ const getTeamTasks = (categoryId) => {
 const selectedRowItems = ref([]);
 
 const updateSelectedRowItems = (items) => {
+  isTrayHidden.value = false;
   selectedRowItems.value = items;
-  console.log(selectedRowItems.value);
 };
 const getAllUserTaskIds = (tasks) => {
   return tasks.flatMap((task) =>
@@ -442,15 +459,11 @@ const handleComplete = async () => {
   z-index: 1000;
 }
 
-.selected-count {
-  margin-left: 40px;
-}
-
 .selected-text {
   font-family: "Poppins";
   font-weight: 600;
   font-size: 14px;
-  padding: 7px 15px;
+  padding: 5px 13px;
   border-radius: 50%;
   color: #fff;
   background: #000;

@@ -48,7 +48,7 @@
 
       <!-- Menu Options -->
       <v-list density="compact">
-        <v-list-item @click="goToPracticeProfile">
+        <v-list-item @click="goToPracticeProfile" v-if="user.roleId===1 || user.roleId===8">
           <v-list-item-title class="menu-option"
             >Practice Profile</v-list-item-title
           >
@@ -76,6 +76,7 @@
 const { user } = defineProps({
   user: Object,
 });
+console.log(user)
 const showProfileDialog = ref(false);
 const showPracticeProfileDialog = ref(false);
 const menu = ref(false);
@@ -90,7 +91,7 @@ const goToMyProfile = () => {
   showProfileDialog.value = true;
   menu.value = false;
 };
-
+ 
 const handleLogout = () => {
   router.push("/logout");
 };
