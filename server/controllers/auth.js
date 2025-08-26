@@ -284,6 +284,25 @@ export const resetPassword = async (event) => {
   }
 };
 
+export const updatePassword = async (event) => {
+  const { userId } = event.context.user;
+  const body = await readBody(event);
+  const { oldPassword, newPassword } = JSON.parse(body);
+  try {
+    if (!oldPassword || !newPassword)
+      return error(402, "Missing required fields");
+    const user = await User.findOne({ where: { userId } });
+    if (!user || !(await bcrypt.compare(oldPassword, user.password))) {
+      return error(401, "Invalid credentials");
+    }
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await User.update({ password: hashed }, { where: { userId } });
+    return success("Password updated");
+  } catch (err) {
+    return error(500, err);
+  }
+};
+
 export const switchOrgnanisation = async (event) => {
   const { orgId } = await readBody(event);
   const user = event.context.user;

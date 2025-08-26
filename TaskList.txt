@@ -1,26 +1,4 @@
-1. Create API to update userPreferences (datatable columns). Done
-2. Create front end logic to retrieve datatable columns for front end tables. Done
-
-4. Create API to get user task details (Attachments, checklist etc). Done
-
-New Tasks
-1. Create API to update user's profile.
-2. Integrate APIs to update user task checklist
-3. Integrate APIs to delete user task checklist
-4. Integrate APIs to create a new task checklist
-5. Integrate APIs to upload / delete Attachments
-6. feature to see user tasks when click on user's avatar in tile view.
-
-
-User login history - done
-follow up email notifications to new comers (not logging in)
-Role Id to be optional for tasks - done
-create options menu on checkbox selection
-
-
-Usama's tasks for 15 august
-1. complete dashboard remaining selection
-2. update toast notifications
-3. complete code refactoring and removing of unused components
+Add checks for normal users
+update design of selected tray
 
 

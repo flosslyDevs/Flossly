@@ -11,6 +11,7 @@ import {
   userLoginHistory,
   verifyEmail,
   updateProfile,
+  updatePassword,
   updateBankDetails
 } from "../../controllers/auth";
 import bcrypt from "bcrypt";
@@ -33,6 +34,8 @@ export default defineEventHandler(async (event) => {
       return await forgetPasswordRequest(event);
     case "resetPassword":
       return await resetPassword(event);
+    case "updatePassword":
+      return await updatePassword(event)
     case "inviteMembers":
       return await inviteMembers(event);
     case "acceptInvitation":
