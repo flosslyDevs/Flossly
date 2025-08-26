@@ -171,6 +171,15 @@ export const useMainStore = defineStore("mainStore", {
           imgPath: dashBoard,
           value: "flosllyDocs",
           to: "/documents",
+          children: [
+            {
+              title: "My Docs",
+              value: "mydocs",
+              imgPath: flosslyDocs,
+              to: "/documents/mydocs",
+            },
+        
+          ],
         },
       ];
     },

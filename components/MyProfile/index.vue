@@ -44,8 +44,8 @@ import ProfileImg from "@/assets/icons/myProfile/profile.svg";
 import HrImg from "@/assets/icons/myProfile/hr.svg";
 import PaymentImg from "@/assets/icons/myProfile/payment.svg";
 import PasswordImg from "@/assets/icons/myProfile/password.svg";
-import NotificationImg from "@/assets/icons/myProfile/notification.svg";
-import SuperImg from "@/assets/icons/myProfile/super.svg";
+// import NotificationImg from "@/assets/icons/myProfile/notification.svg";
+// import SuperImg from "@/assets/icons/myProfile/super.svg";
 import MembershipImg from "@/assets/icons/myProfile/membership.svg";
 import RewardImg from "@/assets/icons/myProfile/rewards.svg";
 import LoyaltyImg from "@/assets/icons/myProfile/loyalty.svg";
@@ -64,12 +64,12 @@ const menuItems = [
   { key: "hr", label: "HR Details", icon: HrImg },
   { key: "payment", label: "Payment Details", icon: PaymentImg },
   { key: "password", label: "Password", icon: PasswordImg },
-  {
-    key: "notification",
-    label: "Notification",
-    icon: NotificationImg,
-  },
-  { key: "super", label: "Super User", icon: SuperImg },
+  // {
+  //   key: "notification",
+  //   label: "Notification",
+  //   icon: NotificationImg,
+  // },
+  // { key: "super", label: "Super User", icon: SuperImg },
   { key: "membership", label: "Membership", icon: MembershipImg },
   { key: "reward", label: "Reward Points", icon: RewardImg },
   { key: "loyalty", label: "Loaylty Points", icon: LoyaltyImg },
@@ -104,8 +104,8 @@ const componentsMap = {
   hr: HRDetails,
   payment: PaymentDetails,
   password: Password,
-  notification: Notification,
-  super: SuperUser,
+  // notification: Notification,
+  // super: SuperUser,
   membership: Membership,
   reward: RewardPoints,
   loyalty: LoyaltyPoints
