@@ -32,8 +32,8 @@ import ProfileDetails from "./profile/index.vue";
 import HRDetails from "./hrDetails/index.vue";
 import PaymentDetails from "./paymentDetails/index.vue";
 import Password from "./password/index.vue";
-import Notification from "./notification/index.vue";
-import SuperUser from "./superuser/index.vue";
+// import Notification from "./notification/index.vue";
+// import SuperUser from "./superuser/index.vue";
 import Membership from "./membership/index.vue";
 import RewardPoints from "./rewardPoints/index.vue";
 import LoyaltyPoints from "./loyaltyPoints/index.vue";
@@ -59,7 +59,7 @@ const acccoutDetails = ref({})
 const contractDetails = ref({})
 
 // Sidebar menu items
-const menuItems = [
+const menuItems = ref([
   { key: "profile", label: "Profile Details", icon: ProfileImg },
   { key: "hr", label: "HR Details", icon: HrImg },
   { key: "payment", label: "Payment Details", icon: PaymentImg },
@@ -70,16 +70,27 @@ const menuItems = [
   //   icon: NotificationImg,
   // },
   // { key: "super", label: "Super User", icon: SuperImg },
-  { key: "membership", label: "Membership", icon: MembershipImg },
   { key: "reward", label: "Reward Points", icon: RewardImg },
   { key: "loyalty", label: "Loaylty Points", icon: LoyaltyImg },
 
 
-];
+]);
+const addMembership=()=>{
+  if (user?.roleId === 1 || user?.roleId === 8) {
+  menuItems.value.splice(4, 0, { 
+    key: "membership", 
+    label: "Membership", 
+    icon: MembershipImg 
+  })
+}
+}
 
 onMounted(() => {
   getAccount()
   getContract()
+addMembership()
+
+
 })
 
 const getAccount = () => {
