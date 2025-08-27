@@ -3,7 +3,7 @@
       class="holiday-page"
       :style="{
   backgroundImage: `url(${images[currentIndex]})`,
-  backgroundSize: currentIndex === 0 ? 'contain' : 'cover'
+  backgroundSize: 'cover'
 }"
     >
       <!-- Floating buttons -->
@@ -42,11 +42,9 @@
   
   <style scoped>
   .holiday-page {
-    margin-top: 40px;
     width: 100%;
     height: 88vh;
- 
-    background-position: center;
+    background-size: cover;
     position: relative;
   }
   

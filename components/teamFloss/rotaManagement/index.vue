@@ -43,10 +43,9 @@
   
   <style scoped>
   .rota-page {
-    margin-top: 40px;
     width: 100%;
     height: 100vh;
-    background-size: cover;
+    background-size: contain;
     background-position: center;
     position: relative;
   }
