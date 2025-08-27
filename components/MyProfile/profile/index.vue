@@ -208,7 +208,7 @@ const logValue = (e, key) => {
 };
 
 const getAccountType = () => {
-  return user?.preferences.licenseType;
+  return user?.preferences?.licenseType;
 };
 
 const getPracticeName = () => {
