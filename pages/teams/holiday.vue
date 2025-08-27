@@ -1,10 +1,10 @@
 <template>
- <div>
-  team docs
- </div>  
+    <TeamFlossHolidayTracker/>
+
 </template>
 <script setup>
 definePageMeta({
-  layout: "home",
-});
+  layout: 'home'
+})
+
 </script>

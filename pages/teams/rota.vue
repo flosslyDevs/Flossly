@@ -1,10 +1,11 @@
 <template>
- <div>
-  team docs
- </div>  
+
+<TeamFlossRotaManagement/>
+
 </template>
 <script setup>
 definePageMeta({
-  layout: "home",
-});
+  layout: 'home'
+})
+
 </script>

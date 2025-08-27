@@ -19,7 +19,7 @@
         <!-- Right side form -->
         <v-col
           cols="12"
-          md="7"
+          md="7" 
           class="d-flex align-center justify-center px-12"
         >
           <div style="width: 100%; max-width: 500px">

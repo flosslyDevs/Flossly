@@ -1,10 +1,9 @@
 <template>
- <div>
-  team docs
- </div>  
+    <CustomerRelationManagement/>
 </template>
 <script setup>
 definePageMeta({
-  layout: "home",
-});
+  layout: 'home'
+})
+
 </script>

@@ -1,10 +1,10 @@
 <template>
- <div>
-  team docs
- </div>  
+    <TeamFlossInvoice/>
+
 </template>
 <script setup>
 definePageMeta({
-  layout: "home",
-});
+  layout: 'home'
+})
+
 </script>
