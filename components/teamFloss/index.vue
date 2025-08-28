@@ -41,7 +41,7 @@
     </div>
     <!-- user Details -->
     <div v-else>
-      <TeamFlossUserDetailsVue />
+      <TeamFlossUserDetails/>
     </div>
   </div>
 </template>

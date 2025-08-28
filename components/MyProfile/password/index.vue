@@ -146,6 +146,7 @@ const resetPassword= async()=>{
         title: res.message || "Reset code sent to your email",
         type: "success",
       });
+      localStorage.setItem("route", "forgetpassword");
       router.push("/logout");
 
     } else {
