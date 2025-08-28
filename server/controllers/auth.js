@@ -291,15 +291,15 @@ export const updatePassword = async (event) => {
   try {
     if (!oldPassword || !newPassword)
       return error(402, "Missing required fields");
-    const user = await User.findOne({ where: { userId } });
+    const user = await User.findOne({ where: { id: userId } });
     if (!user || !(await bcrypt.compare(oldPassword, user.password))) {
       return error(401, "Invalid credentials");
     }
     const hashed = await bcrypt.hash(newPassword, 10);
-    await User.update({ password: hashed }, { where: { userId } });
+    await User.update({ password: hashed }, { where: { id: userId } });
     return success("Password updated");
   } catch (err) {
-    return error(500, err);
+    return error(500, err.message);
   }
 };
 
