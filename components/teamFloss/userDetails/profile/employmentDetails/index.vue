@@ -1,12 +1,13 @@
 <template>
   <div class="mt-5">
     <v-row>
-      <v-col cols="12" md="6" v-for="card in cards" :key="card.id">
-        <TeamFlossUserDetailsProfileEmploymentDetailsCollapsibleCard
-          :card="card"
-          @updateField="updateField"
-        />
-      </v-col>
+    
+      <v-col cols="12" md="6">
+  <TeamFlossUserDetailsProfileEmploymentDetailsRoleInformationCard 
+    :data="roleInfo" 
+    @updateField="updateField"
+  />
+</v-col>
       <v-col cols="12" md="6">
         <TeamFlossUserDetailsProfileEmploymentDetailsEmploymentCard
           :initialData="employmentData"
@@ -77,61 +78,6 @@ const updateBankDetails = () => {
   })
 }
 
-const cards = ref([
-  {
-    id: 1,
-    title: "Location",
-    fields: [
-      { id: "location_1", label: "Public holiday observe for", value: "" },
-    ],
-  },
-  {
-    id: 2,
-    title: "Role Information",
-    subtitle: "Job title, probation and notice period",
-    fields: [
-      { id: "role_1", label: "Job title", value: "hii" },
-      { id: "role_2", label: "Team(s)", value: "" },
-      { id: "role_3", label: "Contract type", value: "" },
-      { id: "role_4", label: "Reports to", value: "" },
-      { id: "role_5", label: "Probation required", value: "" },
-    ],
-  },
-  {
-    id: 3,
-    title: "Salary Information",
-    subtitle: "Salary amount, rate and payment frequency",
-    fields: [
-      { id: "salary_1", label: "Amount/rate", value: "" },
-      { id: "salary_2", label: "Payment frequency", value: "" },
-      { id: "salary_3", label: "Hourly rate", value: "" },
-      { id: "salary_4", label: "Effective date", value: "" },
-    ],
-  },
-  {
-    id: 4,
-    title: "Bank Details",
-    subtitle: "Employee bank details",
-    fields: [
-      { id: "bank_1", label: "Name on account", value: "" },
-      { id: "bank_2", label: "Name of bank", value: "" },
-      { id: "bank_3", label: "Bank branch", value: "" },
-      { id: "bank_4", label: "Account number", value: "" },
-      { id: "bank_5", label: "Sort code", value: "" },
-    ],
-  },
-  {
-    id: 5,
-    title: "Leave Details",
-    subtitle: "Employee leave information",
-    notification:
-      "We have calculated your employees annual leave entitlement based on the information you have given us, you can change this by entering into the fields below.",
-    fields: [
-      { id: "leave_1", label: "Leave Entitlement", value: "" },
-      { id: "leave_2", label: "Leave Allowance", value: "" },
-    ],
-  },
-]);
 const employmentData = ref({
   employeeType: "fixed",
   workingPattern: "",
@@ -190,13 +136,26 @@ const onSensitiveInfoUpdate = ({ field, value }) => {
   sensitiveInfo.value[field] = value;
   console.log("Updated field:", field, "=>", value);
 };
-const updateField = ({ cardId, fieldId, value }) => {
-  const card = cards.value.find((c) => c.id === cardId);
-  if (!card) return;
-  const field = card.fields.find((f) => f.id === fieldId);
-  if (field) {
-    field.value = value;
-    console.log(`Updated card:${cardId}, field:${fieldId}, value: ${value}`);
-  }
+
+const roleInfo = ref({
+  jobTitle: "hii",
+  team: "",
+  contractType: "",
+  reportsTo: "",
+  probationRequired: "",
+});
+
+const salaryInfo = ref({
+  amountRate: "",
+  paymentFrequency: "",
+  hourlyRate: "",
+  effectiveDate: "",
+});
+
+const updateField = ({ section, key, value }) => {
+  console.log("Updated:", section, key, value);
+  if (section === "role") roleInfo.value[key] = value;
+  if (section === "salary") salaryInfo.value[key] = value;
 };
+
 </script>
