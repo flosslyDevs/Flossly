@@ -52,7 +52,7 @@
     :teams="filteredTeams"
     :selectedHeaders="selectedHeaders"
     :search="search"
-    @add="handleAdd"
+    @add="handleAdd" 
     @onUserSelect="getUserDetails"
   />
   <TeamFlossSideBarAddNewstaff
