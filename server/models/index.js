@@ -36,6 +36,8 @@ import { UserPointsHistory } from "./points/userPointHistory";
 import { UserContract } from "./auth/userContracts";
 import { SystemDocumentFolder } from "./documents/systemDocumentFolders";
 import { SystemDocument } from "./documents/systemDocuments";
+import { UserLeaveHistory } from "./leaves/userLeaveHistory";
+import { UserLeaveEntitlement } from "./leaves/userLeaveEntitlements";
 
 /* Relations and Associations */
 
@@ -358,7 +360,17 @@ User.hasOne(UserAccount, { foreignKey: "userId", as: "account" })
 
 // system documents
 
-// associations.js (or inside each model file)
+User.hasMany(UserLeaveHistory, { foreignKey: "userId", as: "leaveHistory" });
+UserLeaveHistory.belongsTo(User, { foreignKey: "userId", as: "user" });
+
+// A user has one entitlement record
+User.hasOne(UserLeaveEntitlement, {
+  foreignKey: "userId",
+  as: "leaveEntitlement",
+});
+UserLeaveEntitlement.belongsTo(User, { foreignKey: "userId", as: "user" });
+
+UserLeaveHistory.belongsTo(User, { foreignKey: "approvedBy", as: "Approver" });
 
 // SystemDocument ↔ SystemDocumentFolder
 SystemDocument.belongsTo(SystemDocumentFolder, {
@@ -391,6 +403,8 @@ export {
   UserTask,
   UserTaskChecklist,
   UserTaskAttachment,
+  UserLeaveEntitlement,
+  UserLeaveHistory,
   TaskChecklist,
   Role,
   Organisation,

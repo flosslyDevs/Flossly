@@ -171,7 +171,7 @@ const addNewCategoryDialog = () => {
 const applyFilters = (filters) => {
   filters.categoryId = currentTab.value;
   taskStore
-    .teamTasksGroupedByStatus(filters)
+    .tasksGroupedByStatus(filters)
     .then((res) => {
       if (res.code === 0) {
         taskDetails.value = sortByCustomStatus(res.data);

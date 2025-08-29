@@ -50,3 +50,8 @@ onMounted(() => {
   }
 });
 </script>
+
+<style scopped>
+.v-list-item__overlay {
+  opacity: 0 !important;
+}</style>

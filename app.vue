@@ -260,6 +260,15 @@ const openEmail = () => {
   width: 100%;
 }
 
+.v-calendar-month__days {
+  .v-calendar-month__day {
+    min-height: 60px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: end;
+}
+} 
+
 @media (min-width: 1400px) and (max-width: 1610px) {
   .v-container {
     max-width: 1400px;
