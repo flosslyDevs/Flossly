@@ -1,6 +1,6 @@
 <template>
   <v-expansion-panels v-model="panel" :elevation="0" flat>
-    <v-expansion-panel rounded="lg" class="border-sm pb-1">
+    <v-expansion-panel rounded="lg" :key="0" class="border-sm pb-1">
       <!-- Title -->
       <v-expansion-panel-title expand-icon="" class="panel-title">
         <div>
@@ -10,7 +10,7 @@
         <template #actions>
           <div class="collapse-btn" @click.stop="togglePanel">
             <v-icon color="white">
-              {{ panel ? "mdi-chevron-up" : "mdi-chevron-down" }}
+              {{ panel === 0 ? "mdi-chevron-up" : "mdi-chevron-down" }}
             </v-icon>
           </div>
         </template>
@@ -18,30 +18,16 @@
       <v-expansion-panel-text class="panel-text">
         <v-row>
           <v-col cols="12" md="6">
-            <label class="field-label">Job title</label>
+            <label class="field-label">Address</label>
             <p
               class="field-value"
-              :class="{ 'is-placeholder': !data.jobTitle }"
+              :class="{ 'is-placeholder': !data.address }"
               contenteditable="true"
               @focus="onFocus($event)"
               @blur="onBlur($event, 'jobTitle')"
-              @keydown.enter.prevent="onEnter($event, 'jobTitle')"
+              @keydown.enter.prevent="onEnter($event, 'address')"
             >
-              {{ data.jobTitle || "Not specified" }}
-            </p>
-          </v-col>
-
-          <v-col cols="12" md="6">
-            <label class="field-label">Team(s)</label>
-            <p
-              class="field-value"
-              :class="{ 'is-placeholder': !data.team }"
-              contenteditable="true"
-              @focus="onFocus($event)"
-              @blur="onBlur($event, 'team')"
-              @keydown.enter.prevent="onEnter($event, 'team')"
-            >
-              {{ data.team || "Not specified" }}
+              {{ data.address || "Not specified" }}
             </p>
           </v-col>
         </v-row>
@@ -58,9 +44,9 @@ const props = defineProps({
 });
 const emit = defineEmits(["updateField"]);
 
-const panel = ref(true);
+const panel = ref(0);
 const togglePanel = () => {
-  panel.value = !panel.value;
+  panel.value = panel.value === 0 ? null : 0;
 };
 
 // remove placeholder text when focusing
@@ -80,7 +66,9 @@ const onBlur = (e, key) => {
 // only update on Enter
 const onEnter = (e, key) => {
   const value = e.target.innerText.trim();
-  emit("updateField", { section: "role", key, value });
+  const updated = { ...props.data };
+  updated[key] = value;
+  emit("updateField", updated);
   e.target.blur(); // exit editing mode
 };
 </script>

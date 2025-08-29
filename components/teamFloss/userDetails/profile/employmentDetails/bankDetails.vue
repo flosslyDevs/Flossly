@@ -4,7 +4,7 @@
       <!-- Title -->
       <v-expansion-panel-title expand-icon="" class="panel-title">
         <div>
-          <p class="title-text">Contract details</p>
+          <p class="title-text">Bank Details</p>
         </div>
 
         <template #actions>
@@ -18,37 +18,56 @@
       <v-expansion-panel-text class="panel-text">
         <v-row>
           <v-col cols="12" md="6">
-            <label class="field-label">Contract Type</label>
+            <label class="field-label">Bank Name</label>
             <p
               class="field-value"
-              :class="{ 'is-placeholder': !data.contractType }"
+              :class="{ 'is-placeholder': !data.bankName }"
               contenteditable="true"
               @focus="onFocus($event)"
-              @blur="onBlur($event, 'contractType')"
-              @keydown.enter.prevent="onEnter($event, 'contractType')"
+              @blur="onBlur($event, 'bankName')"
+              @keydown.enter.prevent="onEnter($event, 'bankName')"
             >
-              {{ data.contractType || "Not specified" }}
+              {{ data.bankName || "Not specified" }}
             </p>
           </v-col>
           <v-col cols="12" md="6">
-            <label class="field-label">Contract Start Date</label>
+            <label class="field-label">Account Title</label>
             <p
               class="field-value"
-              :class="{ 'is-placeholder': !data.contractStartDate }"
+              :class="{ 'is-placeholder': !data.accountTitle }"
               contenteditable="true"
               @focus="onFocus($event)"
-              @blur="onBlur($event, 'contractStartDate')"
-              @keydown.enter.prevent="onEnter($event, 'contractStartDate')"
+              @blur="onBlur($event, 'accountTitle')"
+              @keydown.enter.prevent="onEnter($event, 'accountTitle')"
             >
-              {{ data.contractStartDate || "Not specified" }}
+              {{ data.accountTitle || "Not specified" }}
             </p>
           </v-col>
           <v-col cols="12" md="6">
-            <label class="field-label">Eligible for Pension?</label>
-            <v-switch
-              v-model="data.pensionEligible"
-              @change="onEnter($event, 'pensionEligible')"
-            ></v-switch>
+            <label class="field-label">Account Number</label>
+            <p
+              class="field-value"
+              :class="{ 'is-placeholder': !data.accountNumber }"
+              contenteditable="true"
+              @focus="onFocus($event)"
+              @blur="onBlur($event, 'accountNumber')"
+              @keydown.enter.prevent="onEnter($event, 'accountNumber')"
+            >
+              {{ data.accountNumber || "Not specified" }}
+            </p>
+          </v-col>
+          <v-col cols="12" md="6">
+            <label class="field-label">Sort Code</label>
+            <p
+              class="field-value"
+              :class="{ 'is-placeholder': !data.sortCode }"
+              contenteditable="true"
+              @focus="onFocus($event)"
+              @blur="onBlur($event, 'sortCode')"
+              @keydown.enter.prevent="onEnter($event, 'sortCode')"
+            >
+              {{ data.sortCode || "Not specified" }}
+            </p>
           </v-col>
         </v-row>
       </v-expansion-panel-text>
@@ -85,13 +104,9 @@ const onBlur = (e, key) => {
 
 // only update on Enter
 const onEnter = (e, key) => {
-  console.log(e, key);
-
+  const value = e.target.innerText.trim();
   const updated = props.data;
-  if (key !== "pensionEligible") {
-    const value = e.target.innerText.trim();
-    updated[key] = value;
-  }
+  updated[key] = value;
   emit("updateField", updated);
   e.target.blur(); // exit editing mode
 };

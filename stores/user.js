@@ -82,21 +82,52 @@ export const useUserStore = defineStore("userStore", {
             reject(err);
           });
       });
+    },
+    updateUserBank(data) {
+      this.isLoading = true;
+      return new Promise((resolve, reject) => {
+        userService
+          .updateUserBank(data)
+          .then((res) => {
+            this.isLoading = false;
+            resolve(res);
+          })
+          .catch((err) => {
+            this.isLoading = false;
+            reject(err);
+          });
+      });
+    },
+    getUserLeaveHistory(data) {
+      this.isLoading = true;
+      return new Promise((resolve, reject) => {
+        userService
+          .getUserLeaveHistory(data)
+          .then((res) => {
+            this.isLoading = false;
+            resolve(res);
+          })
+          .catch((err) => {
+            this.isLoading = false;
+            reject(err);
+          });
+      });
+    },
+    applyLeave(data) {
+      this.isLoading = true;
+      return new Promise((resolve, reject) => {
+        userService
+          .applyLeave(data)
+          .then((res) => {
+            this.isLoading = false;
+            resolve(res);
+          })
+          .catch((err) => {
+            this.isLoading = false;
+            reject(err);
+          });
+      });
     }
   },
-  updateUserBank(data) {
-    this.isLoading = true;
-    return new Promise((resolve, reject) => {
-      userService
-        .updateUserBank(data)
-        .then((res) => {
-          this.isLoading = false;
-          resolve(res);
-        })
-        .catch((err) => {
-          this.isLoading = false;
-          reject(err);
-        });
-    });
-  }
+
 });

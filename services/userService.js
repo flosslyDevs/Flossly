@@ -66,4 +66,15 @@ export default {
         });
     });
   },
+  getUserLeaveHistory(data) {
+    return new Promise((resolve, reject) => {
+      Post("/users/updateAccount", data)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  }
 };

@@ -1,131 +1,64 @@
 <template>
-  <v-expansion-panels v-model="internalActive">
-    <v-expansion-panel style="border: 1px solid #dbdbdb">
+  <v-expansion-panels v-model="panel" :elevation="0" flat>
+    <v-expansion-panel rounded="lg" :key="0" class="border-sm pb-1">
       <!-- Title -->
-      <v-expansion-panel-title
-        expand-icon=""
-        class="panel-title d-flex align-center justify-space-between"
-      >
-        <p class="title-text">Employment Details</p>
+      <v-expansion-panel-title expand-icon="" class="panel-title">
+        <div>
+          <p class="title-text">Employment Details</p>
+        </div>
 
-        <!-- Custom collapse icon -->
         <template #actions>
           <div class="collapse-btn" @click.stop="togglePanel">
             <v-icon color="white">
-              {{ internalActive === 0 ? "mdi-chevron-up" : "mdi-chevron-down" }}
+              {{ panel === 0 ? "mdi-chevron-up" : "mdi-chevron-down" }}
             </v-icon>
           </div>
         </template>
       </v-expansion-panel-title>
-
-      <!-- Content -->
       <v-expansion-panel-text class="panel-text">
-        <v-row dense>
-          <!-- Employee Type -->
-          <v-col cols="12">
-            <label class="field-label">Employee type</label>
-            <v-radio-group
-              v-model="employeeType"
-              class="mt-2"
-              @change="emitUpdate('employeeType', employeeType)"
+        <v-row>
+          <v-col cols="12" md="6">
+            <label class="field-label">role</label>
+            // V-select role
+          </v-col>
+          <v-col cols="12" md="6">
+            <label class="field-label">Reports to</label>
+            <p
+              class="field-value"
+              :class="{ 'is-placeholder': !data.reportsTo }"
+              contenteditable="true"
+              @focus="onFocus($event)"
+              @blur="onBlur($event, 'reportsTo')"
+              @keydown.enter.prevent="onEnter($event, 'reportsTo')"
             >
-              <div class="d-flex gap-6">
-                <!-- Option 1 -->
-                <div class="d-flex align-center gap-1">
-                  <v-radio
-                    label="Fixed, full or part time"
-                    value="fixed"
-                    class="mr-2"
-                  />
-                  <v-tooltip
-                    text="This applies when employee is fixed full or part time"
-                  >
-                    <template #activator="{ props }">
-                      <v-icon v-bind="props" size="18">mdi-information</v-icon>
-                    </template>
-                  </v-tooltip>
-                </div>
-
-                <!-- Option 2 -->
-                <div class="d-flex align-center gap-1">
-                  <v-radio
-                    label="Short hours or variable"
-                    value="variable"
-                    class="mr-2"
-                  />
-                  <v-tooltip
-                    text="This applies when employee works variable hours"
-                  >
-                    <template #activator="{ props }">
-                      <v-icon v-bind="props" size="18">mdi-information</v-icon>
-                    </template>
-                  </v-tooltip>
-                </div>
-              </div>
-            </v-radio-group>
+              {{ data.reportsTo || "Not specified" }}
+            </p>
           </v-col>
-
-          <!-- Working time pattern -->
-          <v-col cols="12">
-            <div class="d-flex align-center justify-space-between">
-              <label class="field-label">Working time pattern</label>
-              <v-btn
-                prepend-icon="mdi-plus"
-                color="primary"
-                variant="flat"
-                size="small"
-              >
-                Add New
-              </v-btn>
-            </div>
-            <v-select
-              v-model="workingPattern"
-              :items="['Pattern A', 'Pattern B', 'Pattern C']"
-              variant="solo"
-              density="compact"
-              class="mt-2 input-bordered"
-              placeholder="Select pattern"
-              @update:model-value="emitUpdate('workingPattern', workingPattern)"
-              flat
-            />
+          <v-col cols="12" md="6">
+            <label class="field-label">Payroll Number</label>
+            <p
+              class="field-value"
+              :class="{ 'is-placeholder': !data.payrolNumber }"
+              contenteditable="true"
+              @focus="onFocus($event)"
+              @blur="onBlur($event, 'payrolNumber')"
+              @keydown.enter.prevent="onEnter($event, 'payrolNumber')"
+            >
+              {{ data.payrolNumber || "Not specified" }}
+            </p>
           </v-col>
-
-          <!-- Full-time working week -->
-          <v-col cols="12">
-            <label class="field-label">Company's full time working week</label>
-            <div class="d-flex gap-4 mt-2">
-              <v-text-field
-                v-model="fullTimeWeek.hours"
-                type="number"
-                variant="solo"
-                density="compact"
-                hide-details
-                style="max-width: 150px"
-                @blur="emitUpdate('fullTimeWeek', fullTimeWeek)"
-                class="mr-2 input-bordered"
-                flat
-              >
-                <template #append-inner>
-                  <span class="append-label">hrs</span>
-                </template>
-              </v-text-field>
-
-              <v-text-field
-                v-model="fullTimeWeek.minutes"
-                type="number"
-                variant="solo"
-                density="compact"
-                hide-details
-                style="max-width: 150px"
-                @blur="emitUpdate('fullTimeWeek', fullTimeWeek)"
-                class="input-bordered"
-                flat
-              >
-                <template #append-inner>
-                  <span class="append-label">mins</span>
-                </template>
-              </v-text-field>
-            </div>
+          <v-col cols="12" md="6">
+            <label class="field-label">Sort Code</label>
+            <p
+              class="field-value"
+              :class="{ 'is-placeholder': !data.sortCode }"
+              contenteditable="true"
+              @focus="onFocus($event)"
+              @blur="onBlur($event, 'sortCode')"
+              @keydown.enter.prevent="onEnter($event, 'sortCode')"
+            >
+              {{ data.sortCode || "Not specified" }}
+            </p>
           </v-col>
         </v-row>
       </v-expansion-panel-text>
@@ -137,70 +70,146 @@
 import { ref } from "vue";
 
 const props = defineProps({
-  initialData: { type: Object, default: () => ({}) },
+  data: { type: Object, required: true },
 });
-
 const emit = defineEmits(["updateField"]);
 
-const internalActive = ref(null);
-
-const employeeType = ref(props.initialData.employeeType || "");
-const workingPattern = ref(props.initialData.workingPattern || "");
-const fullTimeWeek = ref({
-  hours: props.initialData?.fullTimeWeek?.hours || "",
-  minutes: props.initialData?.fullTimeWeek?.minutes || "",
-});
-
+const panel = ref(0);
 const togglePanel = () => {
-  internalActive.value = internalActive.value === 0 ? null : 0;
+  panel.value = panel.value === 0 ? null : 0;
 };
 
-const emitUpdate = (field, value) => {
-  emit("updateField", { field, value });
+// remove placeholder text when focusing
+const onFocus = (e) => {
+  if (e.target.innerText.trim() === "Not specified") {
+    e.target.innerText = "";
+  }
+};
+
+// restore placeholder if left empty
+const onBlur = (e, key) => {
+  if (!e.target.innerText.trim()) {
+    e.target.innerText = "Not specified";
+  }
+};
+
+// only update on Enter
+const onEnter = (e, key) => {
+  const value = e.target.innerText.trim();
+  const updated = props.data;
+  updated[key] = value;
+  emit("updateField", updated);
+  e.target.blur(); // exit editing mode
 };
 </script>
 
 <style scoped>
+/* Panel shell */
 .panel-title {
-  background: #eff5f5;
+  background-color: #eff5f5;
+  padding: 12px 16px;
 }
 .panel-text {
-  padding: 16px 24px; /* padding equal to title section */
+  padding: 12px 16px;
 }
+
+/* Heading & subtitle */
 .title-text {
-  font-family: Poppins;
+  font-family: Poppins, sans-serif;
   font-weight: 600;
-  font-style: SemiBold;
   font-size: 16px;
   color: #1e1e1e;
+  margin: 0;
 }
+.subtitle-text {
+  font-family: Poppins, sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  color: #1e1e1e;
+  margin: 0;
+}
+
+/* Optional info box (if a card uses it) */
+.notification-box {
+  border-radius: 8px;
+  padding: 12px;
+  margin: 16px 0;
+  font-family: Poppins, sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  background-color: #f9fafa;
+  color: #1e1e1e;
+}
+
+/* Collapse chevron button */
+.collapse-btn {
+  background-color: #213536;
+  border-radius: 50%;
+  padding: 6px;
+  height: 24px;
+  width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Field label + value */
 .field-label {
-  font-family: Poppins;
+  display: block;
+  font-family: Poppins, sans-serif;
   font-weight: 600;
   font-size: 13px;
   color: #1e1e1e;
+  margin-bottom: 4px;
 }
-.collapse-btn {
-    background-color: #213536;
-    border-radius: 50%;
-    padding: 6px;
-    height: 24px;
-    width: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-  }
-.append-label {
-  font-size: 12px;
-  color: #666;
-}
-.input-bordered :deep(.v-field) {
-  border: 1px solid #dfdfdf !important;
-  border-radius: 8px !important;
-  background-color: white !important;
-  min-height: 40px;
+
+.field-value {
+  font-family: Poppins, sans-serif;
+  font-weight: 400;
   font-size: 14px;
-  font-family: "Poppins", sans-serif;
+  color: #101010;
+  outline: none;
+  cursor: text;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  min-height: 22px;
+  padding: 6px 0px; /* a bit more room for editing */
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  word-break: break-word; /* prevents overflow on long words */
+}
+
+.field-value:hover {
+  background-color: #fafafa;
+}
+
+.field-value:focus {
+  border: 1px solid #dfdfdf;
+  background-color: #fafafa;
+}
+
+/* Placeholder look for empty values */
+.field-value.is-placeholder {
+  color: #9e9e9e;
+  font-style: italic;
+}
+
+/* Optional: selection color while editing */
+.field-value::selection {
+  background: #d9eef0;
+}
+
+/* Optional: compact spacing on smaller screens */
+@media (max-width: 600px) {
+  .panel-title,
+  .panel-text {
+    padding: 10px 12px;
+  }
+  .title-text {
+    font-size: 15px;
+  }
+  .subtitle-text {
+    font-size: 12px;
+  }
 }
 </style>

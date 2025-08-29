@@ -10,6 +10,7 @@ import {
   UserPreference,
 } from "../models";
 
+import DB from "../utils/db";
 export const usersList = async (event) => {
   const loggedUser = event.context.user;
   const currentOrg = loggedUser.orgId;
@@ -156,6 +157,7 @@ export const updateUserPreferences = async (event) => {
 };
 
 export const userDetails = async (event) => {
+  const { orgId } = event.context.user;
   const body = await readBody(event);
   const { id } = JSON.parse(body);
   const user = await User.findByPk(id);
@@ -167,10 +169,18 @@ export const userDetails = async (event) => {
         {
           model: UserContract,
           as: "contract", // optional alias if defined
+          where: { organisationId: orgId },
+          required: false,
         },
         {
           model: UserAccount,
           as: "account",
+        },
+        {
+          model: UserLeaveEntitlement,
+          as: "leaveEntitlement",
+          where: { organisationId: orgId },
+          required: false,
         },
       ],
     });
@@ -188,7 +198,8 @@ export const userDetails = async (event) => {
 };
 
 export const updateContractDetails = async (event) => {
-  const transaction = await sequelize.transaction();
+  const { orgId } = event.context.user;
+  const transaction = await DB.transaction();
   const body = await readBody(event);
   const { details, userId } = JSON.parse(body);
   try {
@@ -199,7 +210,7 @@ export const updateContractDetails = async (event) => {
       });
     }
     let contract = await UserContract.findOne({
-      where: { userId, id: details.id },
+      where: { userId, organisationId: orgId },
     });
 
     if (contract) {
@@ -208,6 +219,7 @@ export const updateContractDetails = async (event) => {
       contract = await UserContract.create(
         {
           userId,
+          organisationId: orgId,
           ...details,
         },
         { transaction }
@@ -273,7 +285,7 @@ export const updateBankDetails = async (event) => {
   }
 };
 export const applyLeave = async (event) => {
-  const transaction = await sequelize.transaction();
+  const transaction = await DB.transaction();
   try {
     const body = await readBody(event);
     const { userId, leaveType, startDate, endDate, reason, totalHours } = body;
