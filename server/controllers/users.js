@@ -2,6 +2,8 @@ import {
   Organisation,
   Role,
   User,
+  UserLeaveEntitlement,
+  UserLeaveHistory,
   UserOrganisation,
   UserPreference,
 } from "../models";
@@ -70,14 +72,22 @@ export const userAcrossOrgs = async (event) => {
                 {
                   model: User,
                   as: "user",
-                  attributes: ["id", "fullName", "email", "photo", "createdAt", "profileCompletion", "status"],
-                  include:[
+                  attributes: [
+                    "id",
+                    "fullName",
+                    "email",
+                    "photo",
+                    "createdAt",
+                    "profileCompletion",
+                    "status",
+                  ],
+                  include: [
                     {
                       model: Role,
-                      as: 'role',
-                      attributes: ["id", "title", "color"]
-                    }
-                  ]
+                      as: "role",
+                      attributes: ["id", "title", "color"],
+                    },
+                  ],
                 },
               ],
             },
@@ -85,14 +95,16 @@ export const userAcrossOrgs = async (event) => {
         },
       ],
     });
-    const formattedData = userOrganisations.map(orgItem => {
-      const { userOrganisations, ...orgData } = orgItem.organisation.get({ plain: true });
+    const formattedData = userOrganisations.map((orgItem) => {
+      const { userOrganisations, ...orgData } = orgItem.organisation.get({
+        plain: true,
+      });
 
       return {
         organisation: orgData,
-        orgUsers: userOrganisations.map(uo => ({
+        orgUsers: userOrganisations.map((uo) => ({
           ...uo.user, // user details
-        }))
+        })),
       };
     });
     return success(formattedData);
@@ -131,6 +143,176 @@ export const updateUserPreferences = async (event) => {
     return success("Preferences updated successfully");
   } catch (err) {
     console.log(err);
+    return error(500, err.message);
+  }
+};
+
+export const leaveHistory = async (event) => {
+  const body = await readBody(event);
+  const { id, orgId } = JSON.parse(body);
+  try {
+    const entitlement = await UserLeaveEntitlement.findOne({
+      where: { userId: id, organisationId: orgId },
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "name", "email", "photo"],
+        },
+      ],
+    });
+    const leaveHistory = await UserLeaveHistory.findAll({
+      where: { userId: id, organisationId: orgId },
+      include: [
+        {
+          model: User,
+          as: "approver",
+          attributes: ["id", "name", "email", "photo"],
+        },
+      ],
+      order: [["startDate", "DESC"]],
+    });
+
+    return success({
+      entitlement,
+      leaveHistory,
+    });
+  } catch (err) {
+    return error(500, err.message);
+  }
+};
+
+export const allusersLeavesHistory = async (event) => {
+  try {
+    const leaves = await UserLeaveHistory.findAll({
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "name", "email", "photo"],
+        },
+        {
+          model: User,
+          as: "approver",
+          attributes: ["id", "name", "email", "photo"],
+        },
+      ],
+      order: [["startDate", "DESC"]],
+    });
+
+    const formatted = leaves.map((leave) => ({
+      title: leave.leaveType,
+      start: leave.startDate,
+      end: leave.endDate,
+      status: leave.status,
+      reason: leave.reason,
+      totalHours: leave.totalHours,
+      user: leave.user
+        ? {
+            id: leave.user.id,
+            name: leave.user.name,
+            email: leave.user.email,
+          }
+        : null,
+      approver: leave.approver
+        ? {
+            id: leave.approver.id,
+            name: leave.approver.name,
+            email: leave.approver.email,
+          }
+        : null,
+      createdAt: leave.createdAt,
+      updatedAt: leave.updatedAt,
+    }));
+
+    return success(formatted);
+  } catch (err) {
+    return error(500, err.message);
+  }
+};
+export const applyLeave = async (event) => {
+  const transaction = await sequelize.transaction();
+  try {
+    const body = await readBody(event);
+    const { userId, leaveType, startDate, endDate, reason, totalHours } = body;
+
+    if (!userId || !leaveType || !startDate || !endDate) {
+      return error("Missing required fields");
+    }
+    const entitlement = await UserLeaveEntitlement.findOne({
+      where: { userId },
+    });
+    if (!entitlement)
+      throw createError({
+        message: "Leave Entitlement is not available for this user",
+      });
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffDays =
+      Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    let allowed = 0;
+    let taken = 0;
+
+    switch (leaveType) {
+      case "Annual":
+        allowed = entitlement.allowedAnnualLeaves || 0;
+        taken = entitlement.takenAnnualLeaves || 0;
+        entitlement.takenAnnualLeaves =
+          (entitlement.takenAnnualLeaves || 0) + diffDays;
+        entitlement.save({ transaction });
+        break;
+      case "Casual":
+        allowed = entitlement.allowedCasualLeaves || 0;
+        taken = entitlement.takenCasualLeaves || 0;
+        entitlement.takenCasualLeaves =
+          (entitlement.takenCasualLeaves || 0) + diffDays;
+        entitlement.save({ transaction });
+        break;
+      case "Compationate":
+        allowed = entitlement.allowedCompationateLeaves || 0;
+        taken = entitlement.takenCompationateLeaves || 0;
+        entitlement.takenCompationateLeaves =
+          (entitlement.takenCompationateLeaves || 0) + diffDays;
+        entitlement.save({ transaction });
+        break;
+      case "Sick":
+        allowed = entitlement.allowedSickLeaves || 0;
+        taken = entitlement.takenSickLeaves || 0;
+        entitlement.takenSickLeaves =
+          (entitlement.takenSickLeaves || 0) + diffDays;
+        entitlement.save({ transaction });
+        break;
+      default:
+        allowed = entitlement.allowedOtherLeaves || 0;
+        taken = entitlement.takenOtherLeaves || 0;
+        entitlement.takenOtherLeaves =
+          (entitlement.takenOtherLeaves || 0) + diffDays;
+        entitlement.save({ transaction });
+        break;
+    }
+
+    if (taken + diffDays > allowed) {
+      throw createError({ message: `Not enough ${leaveType} leave balance` });
+    }
+
+    const leave = await UserLeaveHistory.create(
+      {
+        userId,
+        leaveType,
+        startDate,
+        endDate,
+        reason,
+        totalHours: totalHours || null,
+        status: "Pending",
+      },
+      { transaction }
+    );
+
+    await transaction.commit();
+    return success(leave);
+  } catch (err) {
+    await transaction.rollBack();
     return error(500, err.message);
   }
 };
