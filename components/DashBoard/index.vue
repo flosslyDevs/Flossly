@@ -106,6 +106,7 @@
           color="white"
           elevation="0"
           rounded="lg"
+          v-if="user?.roleId === 8 || user?.roleId === 1"
         >
           <h4 class="card-head mb-4">Leads Conversion</h4>
           <div class="ma-5">
@@ -144,6 +145,44 @@
               </div>
             </div>
           </div>
+        </v-card>
+        <v-card
+          class="card flex-grow-1"
+          color="white"
+          elevation="0"
+          rounded="lg"
+          v-else
+        >
+          <h4 class="card-head mb-4">Calender</h4>
+
+          <v-calendar
+            v-model="value"
+            :events="[]"
+            hide-day-header
+            hide-week-number
+            hide-header
+            color="primary"
+            type="month"
+          >
+            <template v-slot:day-event="{ event }">
+              <v-tooltip>
+                <template #activator="{ props: tooltipProps }">
+                  <v-icon
+                    v-bind="tooltipProps"
+                    class="mx-auto"
+                    :color="event.color"
+                    size="8"
+                  >
+                    mdi-circle
+                  </v-icon>
+                </template>
+                <span>{{ event.title }}</span>
+              </v-tooltip>
+            </template>
+            <template v-slot:day-title="{ title }">
+              <span style="font-size: 10px;">{{ title }}</span>
+            </template>
+          </v-calendar>
         </v-card>
       </v-col>
     </v-row>
@@ -279,6 +318,8 @@ const taskStore = useTaskStore();
 const mainStore = useMainStore();
 const docStore = useDocStore();
 const recentFiles = ref([]);
+const user = ref({});
+const value = ref(null)
 const inquirySources = ref([
   { label: "Meta Adverts", count: 16, percent: 35 },
   { label: "Google Adverts", count: 13, percent: 28 },
@@ -461,10 +502,21 @@ watch(tab, (newId) => {
 onMounted(() => {
   fetchListCategories();
   getRecentDocs();
+  if (localStorage.getItem("user")) {
+    user.value = JSON.parse(localStorage.getItem("user"));
+  }
+  if (user.value.roleId === 8 || user.value.roleId === 1) {
+    getMyTasks() 
+  }
 });
+const getMyTasks = () => {
+
+};
 </script>
 
 <style scoped>
+
+
 .font-weight-semi {
   font-weight: 600 !important;
 }

@@ -72,14 +72,11 @@
                         isParentActive(item) && 'right-border',
                       ]"
                     >
-                      <template #prepend>
-                        <img :src="item.imgPath" class="list-icon" alt="icon" />
-                      </template>
+                      <img :src="item.imgPath" class="list-icon" alt="icon" />
                     </v-list-item>
                   </template>
                   <span>{{ item.title }}</span>
                 </v-tooltip>
-
                 <v-list-item
                   v-else
                   v-bind="props"
@@ -95,9 +92,6 @@
                 >
                   <template #prepend>
                     <img :src="item.imgPath" class="list-icon" alt="icon" />
-                  </template>
-                  <template #title>
-                    <span>{{ item.title }}</span>
                   </template>
                 </v-list-item>
               </template>
@@ -135,14 +129,11 @@
                     :to="child.to"
                     :active="isExact(child.to)"
                     :class="[
-                      'custom-list-item',
+                      'custom-list-item not-intended',
                       isExact(child.to) && 'active-item',
                       isExact(child.to) && 'right-border',
                     ]"
                   >
-                    <template #prepend>
-                      <img :src="child.imgPath" class="list-icon" alt="icon" />
-                    </template>
                     <template #title>
                       <span>{{ child.title }}</span>
                     </template>
@@ -247,7 +238,7 @@ const user = ref(null);
 const currentOrg = ref({});
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .custom-list-item {
   font-family: "Poppins";
   font-size: 13px;
@@ -256,15 +247,20 @@ const currentOrg = ref({});
   border-radius: 0px;
   height: 44px;
 }
+.not-intended {
+  padding-inline-start: 30px !important;
+}
 .group-with-line {
   position: relative;
+  border-radius: 6px;
+  background-color: #f6f6f6;
+
 }
 .group-with-line.no-line .child-wrapper::before {
   display: none;
 }
 .child-wrapper {
   position: relative;
-  padding-left: 28px;
 }
 .child-wrapper.rail-child {
   padding-left: 0 !important;
@@ -280,7 +276,6 @@ const currentOrg = ref({});
   z-index: 0;
 }
 .active-item {
-  color: #1e1e1e !important;
   font-weight: 600 !important;
 }
 .right-border {
@@ -298,10 +293,7 @@ const currentOrg = ref({});
   color: #737373;
   margin-bottom: 4px;
 }
-.active-item .v-list-item__prepend .list-icon {
-  color: #1e1e1e !important;
-}
 .rail-closed .v-list-group__items .v-list-item {
-  padding-inline-start: 16px !important; /* match parent padding */
+  padding-inline-start: 8px !important; /* match parent padding */
 }
 </style>
