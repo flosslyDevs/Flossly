@@ -2,6 +2,8 @@ import {
   Organisation,
   Role,
   User,
+  UserAccount,
+  UserContract,
   UserOrganisation,
   UserPreference,
 } from "../models";
@@ -70,14 +72,28 @@ export const userAcrossOrgs = async (event) => {
                 {
                   model: User,
                   as: "user",
-                  attributes: ["id", "fullName", "email", "photo", "createdAt", "profileCompletion", "status"],
-                  include:[
+                  attributes: [
+                    "id",
+                    "fullName",
+                    "email",
+                    "gender",
+                    "nextOfKin",
+                    "nextOfKinContact",
+                    "phone",
+                    "address",
+                    "dob",
+                    "photo",
+                    "createdAt",
+                    "profileCompletion",
+                    "status",
+                  ],
+                  include: [
                     {
                       model: Role,
-                      as: 'role',
-                      attributes: ["id", "title", "color"]
-                    }
-                  ]
+                      as: "role",
+                      attributes: ["id", "title", "color"],
+                    },
+                  ],
                 },
               ],
             },
@@ -85,14 +101,16 @@ export const userAcrossOrgs = async (event) => {
         },
       ],
     });
-    const formattedData = userOrganisations.map(orgItem => {
-      const { userOrganisations, ...orgData } = orgItem.organisation.get({ plain: true });
+    const formattedData = userOrganisations.map((orgItem) => {
+      const { userOrganisations, ...orgData } = orgItem.organisation.get({
+        plain: true,
+      });
 
       return {
         organisation: orgData,
-        orgUsers: userOrganisations.map(uo => ({
+        orgUsers: userOrganisations.map((uo) => ({
           ...uo.user, // user details
-        }))
+        })),
       };
     });
     return success(formattedData);
@@ -131,6 +149,90 @@ export const updateUserPreferences = async (event) => {
     return success("Preferences updated successfully");
   } catch (err) {
     console.log(err);
+    return error(500, err.message);
+  }
+};
+
+export const userDetails = async (event) => {
+  const body = await readBody(event);
+  const { id } = JSON.parse(body);
+  const user = await User.findByPk(id);
+  if (!user) throw createError({ message: "User not found" });
+  try {
+    const user = await User.findOne({
+      where: { id },
+      include: [
+        {
+          model: UserContract,
+          as: "contract", // optional alias if defined
+        },
+        {
+          model: UserAccount,
+          as: "account",
+        },
+      ],
+    });
+
+    if (!user) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: "User not found",
+      });
+    }
+    return success(user);
+  } catch (err) {
+    return error(500, err.message);
+  }
+};
+
+export const updateContractDetails = async (event) => {
+  const transaction = await sequelize.transaction();
+  const body = await readBody(event);
+  const { details, userId } = JSON.parse(body);
+  try {
+    if (!userId) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "Invalid userId provided",
+      });
+    }
+    let contract = await UserContract.findOne({
+      where: { userId, id: details.id },
+    });
+
+    if (contract) {
+      await contract.update(details, { transaction });
+    } else {
+      contract = await UserContract.create(
+        {
+          userId,
+          ...details,
+        },
+        { transaction }
+      );
+    }
+    await transaction.commit();
+    return success("contract updated");
+  } catch (err) {
+    await transaction.rollback();
+    return error(500, err.message);
+  }
+};
+
+export const updateBankDetails = async (event) => {
+  const body = await readBody(event);
+  const { userId, account } = JSON.parse(body);
+  try {
+    const bankDetails = await UserAccount.findOne({
+      where: { userId },
+    });
+    if (!bankDetails) {
+      await UserAccount.create({ ...account, userId });
+    } else {
+      await bankDetails.update(account);
+    }
+    return success(bankDetails);
+  } catch (err) {
     return error(500, err.message);
   }
 };

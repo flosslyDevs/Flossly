@@ -41,7 +41,7 @@
     </div>
     <!-- user Details -->
     <div v-else>
-      <TeamFlossUserDetails/>
+      <TeamFlossUserDetails :user="selectedItem"/>
     </div>
   </div>
 </template>

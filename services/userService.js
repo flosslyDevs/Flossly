@@ -33,4 +33,37 @@ export default {
         });
     });
   },
+  getUserDetails(data) {
+    return new Promise((resolve, reject) => {
+      Post("/users/getDetails", data)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  },
+  updateContract(data) {
+    return new Promise((resolve, reject) => {
+      Post("/users/updateContract", data)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  },
+  updateUserBank(data) {
+    return new Promise((resolve, reject) => {
+      Post("/users/updateAccount", data)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  },
 };

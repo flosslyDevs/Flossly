@@ -31,7 +31,7 @@
     <v-tabs-window v-model="currentTab">
       <v-tabs-window-item value="profile">
         <div class="pa-4">
-          <TeamFlossUserDetailsProfile /> 
+          <TeamFlossUserDetailsProfile :user="user" /> 
         </div>
       </v-tabs-window-item>
 
@@ -57,6 +57,9 @@
 </template>
 
 <script setup>
+const { user } = defineProps({
+  user: Object
+})
 const currentTab = ref("profile");
 </script>
 

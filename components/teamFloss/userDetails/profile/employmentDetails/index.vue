@@ -38,6 +38,44 @@
 
 <script setup>
 import { ref } from "vue";
+const { user } = defineProps({
+  user: Object
+})
+const userStore = useUserStore()
+
+const userDetails = ref({})
+
+
+onMounted(() => {
+  console.log(user)
+  userStore.getUserDetails({ id: user.id}).then((res) => {
+    if(res.code === 0) {
+      userDetails.value = res.data
+    }
+  })
+})
+
+const updateContractDetails = () => {
+  userStore.updateContract({
+    userId: user.id,
+    contract: userDetails.contract
+  }).then((res) => {
+    if (res.code === 0) {
+      // set snack
+    }
+  })
+}
+
+const updateBankDetails = () => {
+  userStore.updateUserBank({
+    userId: user.id,
+    account: userDetails.account
+  }).then((res) => {
+    if (res.code === 0) {
+      // set snack
+    }
+  })
+}
 
 const cards = ref([
   {

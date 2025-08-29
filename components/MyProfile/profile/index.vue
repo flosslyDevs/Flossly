@@ -213,7 +213,7 @@ const getAccountType = () => {
 };
 
 const getPracticeName = () => {
-  return user?.userOrganisations.find(
+  return user?.userOrganisations?.find(
     (x) => x.organisationId === user.currentLoggedInOrgId
   ).organisation.name;
 };

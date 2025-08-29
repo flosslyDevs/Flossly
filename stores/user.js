@@ -53,5 +53,50 @@ export const useUserStore = defineStore("userStore", {
           });
       });
     },
+    getUserDetails(data) {
+      this.isLoading = true;
+      return new Promise((resolve, reject) => {
+        userService
+          .getUserDetails(data)
+          .then((res) => {
+            this.isLoading = false;
+            resolve(res);
+          })
+          .catch((err) => {
+            this.isLoading = false;
+            reject(err);
+          });
+      });
+    },
+    updateContract(data) {
+      this.isLoading = true;
+      return new Promise((resolve, reject) => {
+        userService
+          .updateContract(data)
+          .then((res) => {
+            this.isLoading = false;
+            resolve(res);
+          })
+          .catch((err) => {
+            this.isLoading = false;
+            reject(err);
+          });
+      });
+    }
   },
+  updateUserBank(data) {
+    this.isLoading = true;
+    return new Promise((resolve, reject) => {
+      userService
+        .updateUserBank(data)
+        .then((res) => {
+          this.isLoading = false;
+          resolve(res);
+        })
+        .catch((err) => {
+          this.isLoading = false;
+          reject(err);
+        });
+    });
+  }
 });

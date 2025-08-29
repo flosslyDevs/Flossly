@@ -351,6 +351,11 @@ Organisation.hasMany(UserContract, {
   as: "userContracts",
 });
 
+// Accounts
+
+UserAccount.belongsTo(User, { foreignKey: "userId", as: "user" })
+User.hasOne(UserAccount, { foreignKey: "userId", as: "account" })
+
 // system documents
 
 // associations.js (or inside each model file)
