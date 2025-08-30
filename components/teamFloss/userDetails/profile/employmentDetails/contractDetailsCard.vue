@@ -80,20 +80,23 @@ const onFocus = (e) => {
 const onBlur = (e, key) => {
   if (!e.target.innerText.trim()) {
     e.target.innerText = "Not specified";
+  } else {
+    const value = e.target.innerText.trim();
+    const updated = props.data;
+    updated[key] = value;
+    emit("updateField", { sync: false, updated });
   }
 };
 
 // only update on Enter
 const onEnter = (e, key) => {
-  console.log(e, key);
-
   const updated = props.data;
   if (key !== "pensionEligible") {
     const value = e.target.innerText.trim();
     updated[key] = value;
   }
-  emit("updateField", updated);
-  e.target.blur(); // exit editing mode
+  emit("updateField", { sync: true, updated });
+  e.target.blur();
 };
 </script>
 

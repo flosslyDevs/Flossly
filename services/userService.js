@@ -1,4 +1,4 @@
-import { Get,Post } from "./apiWrapper";
+import { Get, Post, PostFormData } from "./apiWrapper";
 export default {
   updatePreferences(data) {
     return new Promise((resolve, reject) => {
@@ -66,9 +66,9 @@ export default {
         });
     });
   },
-  getUserLeaveHistory(data) {
+  applyLeave(data) {
     return new Promise((resolve, reject) => {
-      Post("/users/updateAccount", data)
+      PostFormData("/users/applyLeave", data)
         .then((res) => {
           resolve(res);
         })
@@ -76,5 +76,27 @@ export default {
           reject(err);
         });
     });
-  }
+  },
+  getUserLeaveHistory(data) {
+    return new Promise((resolve, reject) => {
+      Post("/users/leaveHistory", data)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  },
+  updateLeaveEntitlement(data) {
+    return new Promise((resolve, reject) => {
+      Post("/users/updateLeaveEntitlement", data)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  },
 };

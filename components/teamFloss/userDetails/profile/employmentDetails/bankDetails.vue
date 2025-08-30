@@ -99,6 +99,11 @@ const onFocus = (e) => {
 const onBlur = (e, key) => {
   if (!e.target.innerText.trim()) {
     e.target.innerText = "Not specified";
+  } else {
+    const value = e.target.innerText.trim();
+    const updated = props.data;
+    updated[key] = value;
+    emit("updateField", { sync: false, updated });
   }
 };
 
@@ -107,7 +112,7 @@ const onEnter = (e, key) => {
   const value = e.target.innerText.trim();
   const updated = props.data;
   updated[key] = value;
-  emit("updateField", updated);
+  emit("updateField", { sync: true, updated });
   e.target.blur(); // exit editing mode
 };
 </script>

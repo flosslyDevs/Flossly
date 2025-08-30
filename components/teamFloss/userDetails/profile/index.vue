@@ -1,7 +1,7 @@
 <template>
-  <v-card class="mt-5" :elevation="0" style="border: 1px solid #e0e0e0">
-    <v-card-title class="title d-flex justify-start align-center">
-      Employee Profile
+  <v-card class="mt-5 rounded-lg" :elevation="0" style="border: 1px solid #e0e0e0">
+    <v-card-title class="title d-flex justify-start align-center py-3">
+      {{ user?.fullName +"'s Profile"}}
     </v-card-title>
 
     <v-divider />

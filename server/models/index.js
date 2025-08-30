@@ -370,7 +370,7 @@ User.hasOne(UserLeaveEntitlement, {
 });
 UserLeaveEntitlement.belongsTo(User, { foreignKey: "userId", as: "user" });
 
-UserLeaveHistory.belongsTo(User, { foreignKey: "approvedBy", as: "Approver" });
+UserLeaveHistory.belongsTo(User, { foreignKey: "approvedBy", as: "approver" });
 
 // SystemDocument ↔ SystemDocumentFolder
 SystemDocument.belongsTo(SystemDocumentFolder, {
