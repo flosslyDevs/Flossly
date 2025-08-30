@@ -3,6 +3,8 @@ import userService from "../services/userService";
 export const useUserStore = defineStore("userStore", {
   state: () => ({
     isLoading: false,
+    users: [],
+    orgUsers: []
   }),
 
   getters: {},
@@ -30,6 +32,7 @@ export const useUserStore = defineStore("userStore", {
           .getUserList(data)
           .then((res) => {
             this.isLoading = false;
+            this.users = res.data;
             resolve(res);
           })
           .catch((err) => {
@@ -45,6 +48,7 @@ export const useUserStore = defineStore("userStore", {
           .getUserOrgWise()
           .then((res) => {
             this.isLoading = false;
+            this.orgUsers = res.data
             resolve(res);
           })
           .catch((err) => {
@@ -127,7 +131,21 @@ export const useUserStore = defineStore("userStore", {
             reject(err);
           });
       });
-    }
+    },
+    updateLeaveEntitlement(data) {
+      this.isLoading = true;
+      return new Promise((resolve, reject) => {
+        userService
+          .updateLeaveEntitlement(data)
+          .then((res) => {
+            this.isLoading = false;
+            resolve(res);
+          })
+          .catch((err) => {
+            this.isLoading = false;
+            reject(err);
+          });
+      });
+    },
   },
-
 });

@@ -1,5 +1,5 @@
 <template>
-  <div style="background-color: white" class="pa-5 rounded-lg">
+  <div style="background-color: white" class="px-5 rounded-lg">
     <!-- Tabs -->
     <v-tabs
       v-model="currentTab"
@@ -30,27 +30,19 @@
     <!-- Tab Content -->
     <v-tabs-window v-model="currentTab">
       <v-tabs-window-item value="profile">
-        <div class="pa-4">
           <TeamFlossUserDetailsProfile :user="user" /> 
-        </div>
       </v-tabs-window-item>
 
       <v-tabs-window-item value="leave">
-        <div class="pa-4">
-          <TeamFlossUserDetailsLeaveManagement />
-        </div>
+          <TeamFlossUserDetailsLeaveManagement :user="user" />
       </v-tabs-window-item>
 
       <v-tabs-window-item value="documents">
-        <div class="pa-4">
           <TeamFlossUserDetailsDocuments />
-        </div>
       </v-tabs-window-item>
 
       <v-tabs-window-item value="performance">
-        <div class="pa-4">
           <TeamFlossUserDetailsPerformance />
-        </div>
       </v-tabs-window-item>
     </v-tabs-window>
   </div>
@@ -92,6 +84,6 @@ const currentTab = ref("profile");
 }
 
 .custom-tabs .v-tabs-slider {
-  height: 2px;
+  height: 4px;
 }
 </style>

@@ -47,19 +47,6 @@
               {{ data.payrolNumber || "Not specified" }}
             </p>
           </v-col>
-          <v-col cols="12" md="6">
-            <label class="field-label">Sort Code</label>
-            <p
-              class="field-value"
-              :class="{ 'is-placeholder': !data.sortCode }"
-              contenteditable="true"
-              @focus="onFocus($event)"
-              @blur="onBlur($event, 'sortCode')"
-              @keydown.enter.prevent="onEnter($event, 'sortCode')"
-            >
-              {{ data.sortCode || "Not specified" }}
-            </p>
-          </v-col>
         </v-row>
       </v-expansion-panel-text>
     </v-expansion-panel>
@@ -90,6 +77,11 @@ const onFocus = (e) => {
 const onBlur = (e, key) => {
   if (!e.target.innerText.trim()) {
     e.target.innerText = "Not specified";
+  } else {
+    const value = e.target.innerText.trim();
+    const updated = props.data;
+    updated[key] = value;
+    emit("updateField", { sync: false, updated });
   }
 };
 
@@ -98,7 +90,7 @@ const onEnter = (e, key) => {
   const value = e.target.innerText.trim();
   const updated = props.data;
   updated[key] = value;
-  emit("updateField", updated);
+  emit("updateField", { sync: true, updated });
   e.target.blur(); // exit editing mode
 };
 </script>

@@ -11,6 +11,8 @@ import {
 } from "../models";
 
 import DB from "../utils/db";
+import fs from "fs";
+import path from "path";
 export const usersList = async (event) => {
   const loggedUser = event.context.user;
   const currentOrg = loggedUser.orgId;
@@ -157,9 +159,8 @@ export const updateUserPreferences = async (event) => {
 };
 
 export const userDetails = async (event) => {
-  const { orgId } = event.context.user;
   const body = await readBody(event);
-  const { id } = JSON.parse(body);
+  const { id, organisationId } = JSON.parse(body);
   const user = await User.findByPk(id);
   if (!user) throw createError({ message: "User not found" });
   try {
@@ -169,7 +170,7 @@ export const userDetails = async (event) => {
         {
           model: UserContract,
           as: "contract", // optional alias if defined
-          where: { organisationId: orgId },
+          where: { organisationId },
           required: false,
         },
         {
@@ -179,7 +180,7 @@ export const userDetails = async (event) => {
         {
           model: UserLeaveEntitlement,
           as: "leaveEntitlement",
-          where: { organisationId: orgId },
+          where: { organisationId },
           required: false,
         },
       ],
@@ -198,10 +199,9 @@ export const userDetails = async (event) => {
 };
 
 export const updateContractDetails = async (event) => {
-  const { orgId } = event.context.user;
   const transaction = await DB.transaction();
   const body = await readBody(event);
-  const { details, userId } = JSON.parse(body);
+  const { details, userId, organisationId } = JSON.parse(body);
   try {
     if (!userId) {
       throw createError({
@@ -210,7 +210,7 @@ export const updateContractDetails = async (event) => {
       });
     }
     let contract = await UserContract.findOne({
-      where: { userId, organisationId: orgId },
+      where: { userId, organisationId },
     });
 
     if (contract) {
@@ -219,7 +219,7 @@ export const updateContractDetails = async (event) => {
       contract = await UserContract.create(
         {
           userId,
-          organisationId: orgId,
+          organisationId,
           ...details,
         },
         { transaction }
@@ -235,25 +235,25 @@ export const updateContractDetails = async (event) => {
 
 export const leaveHistory = async (event) => {
   const body = await readBody(event);
-  const { id, orgId } = JSON.parse(body);
+  const { userId, organisationId } = JSON.parse(body);
   try {
     const entitlement = await UserLeaveEntitlement.findOne({
-      where: { userId: id, organisationId: orgId },
+      where: { userId, organisationId },
       include: [
         {
           model: User,
           as: "user",
-          attributes: ["id", "name", "email", "photo"],
+          attributes: ["id", "fullName", "email", "photo"],
         },
       ],
     });
     const leaveHistory = await UserLeaveHistory.findAll({
-      where: { userId: id, organisationId: orgId },
+      where: { userId, organisationId },
       include: [
         {
           model: User,
           as: "approver",
-          attributes: ["id", "name", "email", "photo"],
+          attributes: ["id", "fullName", "email", "photo"],
         },
       ],
       order: [["startDate", "DESC"]],
@@ -287,15 +287,57 @@ export const updateBankDetails = async (event) => {
 export const applyLeave = async (event) => {
   const transaction = await DB.transaction();
   try {
-    const body = await readBody(event);
-    const { userId, leaveType, startDate, endDate, reason, totalHours } = body;
+    const form = await readMultipartFormData(event);
+
+    if (!form) return error("Invalid form data");
+
+    // Extract fields from form data
+    const fields = {};
+    let documentFile = null;
+
+    form.forEach((item) => {
+      if (item.type) {
+        // file
+        documentFile = item;
+      } else {
+        // text field
+        fields[item.name] = item.data.toString();
+      }
+    });
+
+    const {
+      userId,
+      organisationId,
+      leaveType,
+      startDate,
+      endDate,
+      reason,
+      isPaid,
+      totalHours
+    } = fields;
 
     if (!userId || !leaveType || !startDate || !endDate) {
       return error("Missing required fields");
     }
+
+    // Save file if uploaded
+    let documentPath = null;
+    if (documentFile) {
+      const uploadDir = path.join(process.cwd(), "public", "leave-documents");
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      const fileName = `${Date.now()}-${documentFile.filename}`;
+      const filePath = path.join(uploadDir, fileName);
+      fs.writeFileSync(filePath, documentFile.data);
+      documentPath = `/leave-documents/${fileName}`;
+    }
+
     const entitlement = await UserLeaveEntitlement.findOne({
-      where: { userId },
+      where: { userId, organisationId },
     });
+
     if (!entitlement)
       throw createError({
         message: "Leave Entitlement is not available for this user",
@@ -305,6 +347,7 @@ export const applyLeave = async (event) => {
     const end = new Date(endDate);
     const diffDays =
       Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
     let allowed = 0;
     let taken = 0;
 
@@ -312,37 +355,27 @@ export const applyLeave = async (event) => {
       case "Annual":
         allowed = entitlement.allowedAnnualLeaves || 0;
         taken = entitlement.takenAnnualLeaves || 0;
-        entitlement.takenAnnualLeaves =
-          (entitlement.takenAnnualLeaves || 0) + diffDays;
-        entitlement.save({ transaction });
+        entitlement.takenAnnualLeaves += diffDays;
         break;
       case "Casual":
         allowed = entitlement.allowedCasualLeaves || 0;
         taken = entitlement.takenCasualLeaves || 0;
-        entitlement.takenCasualLeaves =
-          (entitlement.takenCasualLeaves || 0) + diffDays;
-        entitlement.save({ transaction });
+        entitlement.takenCasualLeaves += diffDays;
         break;
       case "Compationate":
         allowed = entitlement.allowedCompationateLeaves || 0;
         taken = entitlement.takenCompationateLeaves || 0;
-        entitlement.takenCompationateLeaves =
-          (entitlement.takenCompationateLeaves || 0) + diffDays;
-        entitlement.save({ transaction });
+        entitlement.takenCompationateLeaves += diffDays;
         break;
       case "Sick":
         allowed = entitlement.allowedSickLeaves || 0;
         taken = entitlement.takenSickLeaves || 0;
-        entitlement.takenSickLeaves =
-          (entitlement.takenSickLeaves || 0) + diffDays;
-        entitlement.save({ transaction });
+        entitlement.takenSickLeaves += diffDays;
         break;
       default:
         allowed = entitlement.allowedOtherLeaves || 0;
         taken = entitlement.takenOtherLeaves || 0;
-        entitlement.takenOtherLeaves =
-          (entitlement.takenOtherLeaves || 0) + diffDays;
-        entitlement.save({ transaction });
+        entitlement.takenOtherLeaves += diffDays;
         break;
     }
 
@@ -350,14 +383,19 @@ export const applyLeave = async (event) => {
       throw createError({ message: `Not enough ${leaveType} leave balance` });
     }
 
+    await entitlement.save({ transaction });
+
     const leave = await UserLeaveHistory.create(
       {
         userId,
+        organisationId,
         leaveType,
         startDate,
         endDate,
         reason,
-        totalHours: totalHours || null,
+        totalHours: totalHours === 'Full Day' ? 8 : 4,
+        isPaid: isPaid === "true", // because form data sends strings
+        document: documentPath,
         status: "Pending",
       },
       { transaction }
@@ -366,14 +404,17 @@ export const applyLeave = async (event) => {
     await transaction.commit();
     return success(leave);
   } catch (err) {
-    await transaction.rollBack();
-    return error(500, err.message);
+    console.log(err)
+    await transaction.rollback();
+    return error(err.message || "Failed to apply leave");
   }
 };
 
 export const allusersLeavesHistory = async (event) => {
+  const { orgId } = event.context.user;
   try {
     const leaves = await UserLeaveHistory.findAll({
+      where: { organisationId: orgId },
       include: [
         {
           model: User,
@@ -415,6 +456,53 @@ export const allusersLeavesHistory = async (event) => {
     }));
 
     return success(formatted);
+  } catch (err) {
+    return error(500, err.message);
+  }
+};
+
+export const updateAllowedLeaves = async (event) => {
+  const body = await readBody(event);
+  const {
+    userId,
+    organisationId,
+    allowedAnnualLeaves,
+    allowedCasualLeaves,
+    allowedCompationateLeaves,
+    allowedSickLeaves,
+    allowedOtherLeaves,
+  } = JSON.parse(body);
+  try {
+    let leaveEntitlement = await UserLeaveEntitlement.findOne({
+      where: { userId, organisationId },
+    });
+    if (!leaveEntitlement) {
+      leaveEntitlement = await UserLeaveEntitlement.create({
+        userId,
+        organisationId,
+        allowedAnnualLeaves,
+        allowedCasualLeaves,
+        allowedCompationateLeaves,
+        allowedSickLeaves,
+        allowedOtherLeaves,
+      });
+    } else {
+      leaveEntitlement.allowedAnnualLeaves =
+        parseInt(allowedAnnualLeaves, 10) ||
+        leaveEntitlement.allowedAnnualLeaves;
+      leaveEntitlement.allowedCasualLeaves =
+        parseInt(allowedCasualLeaves, 10) ||
+        leaveEntitlement.allowedCasualLeaves;
+      leaveEntitlement.allowedCompationateLeaves =
+        parseInt(allowedCompationateLeaves, 10) ||
+        leaveEntitlement.allowedCompationateLeaves;
+      leaveEntitlement.allowedSickLeaves =
+        parseInt(allowedSickLeaves, 10) || leaveEntitlement.allowedSickLeaves;
+      leaveEntitlement.allowedOtherLeaves =
+        parseInt(allowedOtherLeaves, 10) || leaveEntitlement.allowedOtherLeaves;
+      await leaveEntitlement.save();
+    }
+    return success("Updated");
   } catch (err) {
     return error(500, err.message);
   }

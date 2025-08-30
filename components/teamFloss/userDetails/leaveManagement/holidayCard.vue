@@ -10,31 +10,31 @@
 
       <!-- Days -->
       <div class="d-flex align-baseline">
-        <p class="holiday-days">{{ days }}</p>
+        <p class="holiday-days">{{ total }}</p>
         <p class="holiday-days-text ml-2">days</p>
       </div>
-    </div>
+    </div>  
 
     <!-- Right Section (Chips with gap) -->
     <div class="d-flex flex-column" style="gap: 20px;">
         <v-chip :color="color" variant="flat" class="chip-item w-100">
   <div class="d-flex justify-space-between w-100">
     <span class="chip-title">Entitlement</span>
-    <span class="chip-count">{{ counts.entitlement }}</span>
+    <span class="chip-count">{{ total }}</span>
   </div>
 </v-chip>
 
 <v-chip :color="color" variant="flat" class="chip-item mt-2 w-100">
   <div class="d-flex justify-space-between w-100">
     <span class="chip-title">Taken</span>
-    <span class="chip-count">{{ counts.taken }}</span>
+    <span class="chip-count">{{ taken }}</span>
   </div>
 </v-chip>
 
 <v-chip :color="color" variant="flat" class="chip-item mt-2">
   <div class="d-flex justify-space-between w-100">
     <span class="chip-title">Remaining</span>
-    <span class="chip-count">{{ counts.remaining }}</span>
+    <span class="chip-count">{{ total - taken || 0 }}</span>
   </div>
 </v-chip>
     </div>
@@ -44,14 +44,10 @@
   
   <script setup>
   const props = defineProps({
-    iconImg: { type: String, required: true },
     title: { type: String, required: true },
-    days: { type: Number, required: true },
-    counts: {
-      type: Object,
-      required: true,
-      default: () => ({ entitlement: 0, taken: 0, remaining: 0 }),
-    },
+    iconImg: { type: String },
+    total: { type: Number },
+    taken: { type: Number },
     color: { type: String, default: "blue-lighten-4" },
   });
   </script>

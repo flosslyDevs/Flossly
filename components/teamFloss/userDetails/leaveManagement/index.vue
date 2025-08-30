@@ -1,13 +1,31 @@
 <template>
   <div class="mt-5">
     <v-row>
-      <v-col cols="4" v-for="(card, index) in holidayCards" :key="index">
+      <v-col cols="4">
         <team-floss-user-details-leave-management-holiday-card
-          :iconImg="card.iconImg"
-          :title="card.title"
-          :days="card.days"
-          :counts="card.counts"
-          :color="card.color"
+          :iconImg="Annual"
+          title="Annual Leaves"
+          :total="entitlementStats.allowedAnnualLeaves"
+          :taken="entitlementStats.takenAnnualLeaves"
+          color="#E8FAE8"
+        />
+      </v-col>
+      <v-col cols="4">
+        <team-floss-user-details-leave-management-holiday-card
+          :iconImg="Sick"
+          title="Sick Leaves"
+          :total="entitlementStats.allowedSickLeaves"
+          :taken="entitlementStats.takenSickLeaves"
+          color="#FDE8E8"
+        />
+      </v-col>
+      <v-col cols="4">
+        <team-floss-user-details-leave-management-holiday-card
+          :iconImg="Training"
+          title="Other Leaves"
+          :total="entitlementStats.allowedOtherLeaves"
+          :taken="entitlementStats.takenOtherLeaves"
+          color="#FFF3E8"
         />
       </v-col>
     </v-row>
@@ -34,7 +52,12 @@
 
         <!-- Actions: Add + Search -->
         <div class="d-flex align-center">
-          <v-btn color="primary" class="mr-3" @click="openDrawer = true">
+          <v-btn
+            color="primary"
+            class="mr-3"
+            variant="flat"
+            @click="openDrawer = true"
+          >
             Add Leave
           </v-btn>
 
@@ -69,29 +92,29 @@
           <tr v-for="(leave, index) in filteredLeaves" :key="index">
             <td>
               <div class="px-4">
-                {{ leave.dateFrom }}
+                {{ formatDate(leave.startDate) }}
               </div>
             </td>
 
             <td>
               <div class="px-4">
-                {{ leave.dateTo }}
+                {{ formatDate(leave.endDate) }}
               </div>
             </td>
             <td>
               <div class="px-4">
-                {{ leave.hours }}
+                {{ leave.totalHours }}
               </div>
             </td>
 
             <td>
               <div>
-                <div class="px-4">{{ leave.pay }}</div>
+                <div class="px-4">{{ leave.isPaid ? "Yes" : "No" }}</div>
               </div>
             </td>
             <td>
               <div class="px-4">
-                {{ leave.type }}
+                {{ leave.leaveType }}
               </div>
             </td>
             <td>
@@ -103,22 +126,22 @@
             </td>
             <td>
               <div class="px-4">
-                {{ leave.comment }}
+                {{ leave.reason }}
               </div>
             </td>
           </tr>
 
           <tr v-if="filteredLeaves.length === 0">
             <td colspan="7" class="text-center" style="padding: 20px">
-              No leaves found
+              No leave history found
             </td>
           </tr>
         </tbody>
       </v-table>
-
     </div>
     <TeamFlossUserDetailsLeaveManagementHolidayRequestDrawer
       v-model="openDrawer"
+      :user="user"
       @close="openDrawer = false"
       @success="handleSuccess"
     />
@@ -128,90 +151,64 @@
 import Annual from "@/assets/icons/teamfloss/total.svg";
 import Sick from "@/assets/icons/teamfloss/birthday.svg";
 import Training from "@/assets/icons/teamfloss/pending.svg";
+import { parsedDate } from "~/lib/dateFormatter";
 
-const openDrawer = ref(false)
+const { user } = defineProps({
+  user: Object,
+});
 
+const entitlementStats = ref({});
+const leaveHistory = ref([]);
+const openDrawer = ref(false);
+const userStore = useUserStore();
 
+onMounted(() => {
+  getLeaveStats();
+});
 
+const getLeaveStats = () => {
+  userStore
+    .getUserLeaveHistory({
+      userId: user.id,
+      organisationId: user.organisationId,
+    })
+    .then((res) => {
+      if (res.code === 0) {
+        entitlementStats.value = res.data.entitlement;
+        leaveHistory.value = res.data.leaveHistory;
+      }
+    });
+};
 
-const holidayCards = [
-  {
-    iconImg: Annual,
-    title: "Annual Holiday",
-    days: 25,
-    color: "#E8FAE8",
-    counts: { entitlement: 25, taken: 10, remaining: 15 },
-  },
-  {
-    iconImg: Sick,
-    title: "Sick Leave",
-    days: 12,
-    color: "#FDE8E8",
-    counts: { entitlement: 12, taken: 4, remaining: 8 },
-  },
-  {
-    iconImg: Training,
-    title: "Others",
-    days: 8,
-    color: "#FFF3E8",
-    counts: { entitlement: 8, taken: 2, remaining: 6 },
-  },
-];
 const search = ref("");
-
-
-// mock leaves
-const leaves = ref([
-  {
-    dateFrom: "2025-08-01",
-    dateTo: "2025-08-05",
-    hours: 40,
-    pay: "Paid",
-    type: "Annual Leave",
-    status: "Accepted",
-    comment: "Family trip",
-  },
-  {
-    dateFrom: "2025-08-10",
-    dateTo: "2025-08-12",
-    hours: 16,
-    pay: "Unpaid",
-    type: "Sick Leave",
-    status: "Pending",
-    comment: "Medical leave",
-  },
-]);
-
-
 
 const filteredLeaves = computed(() => {
   const q = search.value.trim().toLowerCase();
-  if (!q) return leaves.value;
-  return leaves.value.filter((l) => {
+  if (!q) return leaveHistory.value;
+  return leaveHistory.value.filter((l) => {
     return (
-      (l.type || "").toLowerCase().includes(q) ||
+      (l.leaveType || "").toLowerCase().includes(q) ||
       (l.status || "").toLowerCase().includes(q) ||
-      (l.comment || "").toLowerCase().includes(q) ||
-      (l.dateFrom || "").toLowerCase().includes(q) ||
-      (l.dateTo || "").toLowerCase().includes(q) ||
-      (l.pay || "").toLowerCase().includes(q)
+      (l.reason || "").toLowerCase().includes(q)
     );
   });
 });
 
+const formatDate = (date) => {
+  return parsedDate(date);
+};
 // status chip styling
 const statusChipClass = (status) => {
   if (!status) return "";
-  if (status.toLowerCase() === "accepted") return "status-chip-accepted";
+  if (status.toLowerCase() === "approved") return "status-chip-accepted";
   if (status.toLowerCase() === "pending") return "status-chip-pending";
   if (status.toLowerCase() === "rejected") return "status-chip-rejected";
   return "";
 };
-const handleSuccess = (data) => { 
-  console.log("Holiday Request Saved:", data)
-  openDrawer.value = false
-  // You could also trigger a list refresh here
-}
+const handleSuccess = (data) => {
+  openDrawer.value = false;
+  getLeaveStats();
+};
 </script>
 
 <style scoped>
